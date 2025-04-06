@@ -6,34 +6,39 @@ import OrderPage from "./pages/OrderPage/OrderPage";
 import { routes } from "./routes";
 import DefaultComponent from "./components/DefaultComponent/DefaultComponent";
 import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
 export function App() {
-  useEffect(() => {
-    fetchApi()
-
-  }, [])
-  console.log("process.env.REACT_BACKEND_API_URL", process.env.REACT_API_URL_BACKEND)
+  
+  // useEffect(() => {
+  //   fetchApi();
+  // }, []);
   const fetchApi = async () => {
-    const res = await axios.get(`http://localhost:3001/api/product/get-all`)
-    console.log("res", res)
-
-  }
-
-
-
+    const res = await axios.get(
+      `${process.env.REACT_APP_API_URL}/product/get-all`
+    );
+    return res.data;
+  };
+  const query = useQuery({ queryKey: ['todos'], queryFn: fetchApi })
+  console.log("query", query);
 
   return (
     <div>
-      
       <Router>
         <Routes>
           {routes.map((route) => {
             const Page = route.page;
-            const Layout = route.isShowHeader ? DefaultComponent  : Fragment;
-            return <Route key = {route.path} path={route.path} element={
-              <Layout>
-                <Page />
-              </Layout>
-            } />;
+            const Layout = route.isShowHeader ? DefaultComponent : Fragment;
+            return (
+              <Route
+                key={route.path}
+                path={route.path}
+                element={
+                  <Layout>
+                    <Page />
+                  </Layout>
+                }
+              />
+            );
           })}
         </Routes>
       </Router>

@@ -14,25 +14,25 @@ const ButtonInputSearch = (props) => {
     backgroundColorButton = "#2c92e4",
     colorButton = "#fff"
   } = props;
+
   return (
     <div style={{ display: "flex" }}>
       <InputComponent
         size={size}
         placeholder={placeholder}
-        
         style={{ backgroundColor: backgroundColorInput }}
       />
       <Button
         size={size}
-        bordered={false}
-        icon={<SearchOutlined style = {{color: colorButton}} />}
-        style={{ backgroundColor: backgroundColorButton, border: !bordered && "none" }}
-        textButton={textButton}
+        icon={<SearchOutlined style={{ color: colorButton }} />}
+        style={{
+          backgroundColor: backgroundColorButton,
+          ...(bordered === false && { border: "none" }) // tránh truyền prop bordered không hợp lệ
+        }}
       >
-        <span style = {{color : colorButton}} >{textButton}</span>
-        </Button>
+        <span style={{ color: colorButton }}>{textButton}</span>
+      </Button>
     </div>
   );
 };
-
 export default ButtonInputSearch;
