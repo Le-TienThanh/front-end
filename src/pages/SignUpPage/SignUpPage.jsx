@@ -7,10 +7,33 @@ import {
 import InputForm from "../../components/InputForm/InputForm";
 import { Button, Image } from "antd";
 import imageLogo from "../../assets/img/logo-login.png";
-import { EyeFilled, EyeInvisibleFilled } from "@ant-design/icons"; 
+import { EyeFilled, EyeInvisibleFilled } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
+import ButtonComponent from "../../components/ButtonComponent/ButtonComponent";
 
 const SignUpPage = () => {
   const [isShowPassword, setIsShowPassword] = useState(false);
+  const [isShowConfirmPassword, setIsShowConfirmPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const navigate = useNavigate();
+  const handleOnChangeEmail = (value) => {
+    setEmail(value);
+  };
+  const handleOnChangePassword = (value) => {
+    setPassword(value);
+  };
+  const handleOnChangeConfirmPassword = (value) => {
+    setConfirmPassword(value);
+  };
+  const handleSignUp = () => {
+    console.log("sign-up", email, password, confirmPassword);
+  };
+
+  const handleNavigateSignIn = () => {
+    navigate("/sign-in");
+  };
   return (
     <div
       style={{
@@ -28,63 +51,66 @@ const SignUpPage = () => {
           borderRadius: "0px",
           background: "#fff",
           display: "flex",
-          
         }}
       >
         <WrapperContainerLeft>
           <h1>Xin chào,</h1>
-          <p style={{ fontSize: "15px" }}>Đăng nhập và tạo tài khoản</p>
+          <p style={{ fontSize: "15px" }}>Đăng ký và tạo tài khoản</p>
           <InputForm
             style={{ marginBottom: "10px" }}
             placeholder="abc@gmail.com"
+            value={email}
+            onChange={handleOnChangeEmail}
           />
-          <div style={{position: 'relative'}} >
-          <span
+          <div style={{ position: "relative" }}>
+            <span
               style={{
                 zIndex: "10",
                 position: "absolute",
                 top: "4px",
                 right: "8px",
                 cursor: "pointer",
-                fontSize: '15px',
-                
+                fontSize: "15px",
               }}
               onClick={() => setIsShowPassword(!isShowPassword)} // Toggle trạng thái hiển thị mật khẩu
             >
               {isShowPassword ? <EyeFilled /> : <EyeInvisibleFilled />}
             </span>
-            <InputForm  placeholder = "password" type = {isShowPassword ? "text" : "password"} />
-
-
-
+            <InputForm
+              placeholder="password"
+              type={isShowPassword ? "text" : "password"}
+              value={password}
+              onChange={handleOnChangePassword}
+            />
           </div>
-          <div style={{position: 'relative', marginTop: '10px'}} >
-          <span
+          <div style={{ position: "relative", marginTop: "10px" }}>
+            <span
               style={{
                 zIndex: "10",
                 position: "absolute",
                 top: "4px",
                 right: "8px",
                 cursor: "pointer",
-                fontSize: '15px',
-                
+                fontSize: "15px",
               }}
-              onClick={() => setIsShowPassword(!isShowPassword)} // Toggle trạng thái hiển thị mật khẩu
+              onClick={() => setIsShowConfirmPassword(!isShowConfirmPassword)} // Toggle trạng thái hiển thị mật khẩu
             >
-              {isShowPassword ? <EyeFilled /> : <EyeInvisibleFilled />}
+              {isShowConfirmPassword ? <EyeFilled /> : <EyeInvisibleFilled />}
             </span>
-            <InputForm   placeholder = "confirm password" type = {isShowPassword ? "text" : "password"} />
-
-
-
+            <InputForm
+              placeholder="confirm password"
+              type={isShowConfirmPassword ? "text" : "password"}
+              value={confirmPassword}
+              onChange={handleOnChangeConfirmPassword}
+            />
           </div>
 
-
-
-          
           <Button
+            disabled={
+              !email.length || !password.length || !confirmPassword.length}
+            onClick = {handleSignUp}
             style={{
-              background: "rgb(255, 57, 69)",
+              background: !email || !password  || !confirmPassword ? "#ccc" : "rgb(255, 57, 69)",
               color: "#fff",
               height: "48px",
               width: "100%",
@@ -97,7 +123,10 @@ const SignUpPage = () => {
           </Button>
 
           <p>
-            Bạn đã có tài khoản? <WrapperTextLight>Đăng nhập</WrapperTextLight>
+            Bạn đã có tài khoản?{" "}
+            <WrapperTextLight onClick={handleNavigateSignIn}>
+              Đăng nhập
+            </WrapperTextLight>
           </p>
         </WrapperContainerLeft>
         <WrapperContainerRight>

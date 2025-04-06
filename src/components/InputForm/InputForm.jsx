@@ -2,14 +2,17 @@ import React, { useState } from "react";
 import { Input, Button } from "antd";
 import { WrapperInputStyle } from "./style";
 const InputForm = (props) => {
-    const [valueInput, setValueInput] = useState(``)
-    const {placeholder = 'Nhập text',isShowPassword, ...rest} = props
+  const { placeholder = "Nhập text", ...rests } = props;
+  const handleOnChangeInput = (e) => {
+    props.onChange(e.target.value);
+  }
   return (
-    
-        <WrapperInputStyle placeholder={placeholder} valueInput= {valueInput} {...rest}/>
-
-        
-    
+    <WrapperInputStyle
+      placeholder={placeholder}
+      value={props.value}
+      {...rests}
+      onChange = {handleOnChangeInput}
+    />
   );
 };
 export default InputForm;

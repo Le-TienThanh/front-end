@@ -7,12 +7,17 @@ const ButtonComponent = (
   styleTextButton,
   textButton,
   colorButton,
+  disabled,
   ...rests
 ) => {
   return (
-    <Button size={size} 
-    style={styleButton}
-    icon = {<SearchOutlined color = {colorButton} style = {{color: "#fff"}} />}
+    <Button  
+    style={{
+      ...styleButton,
+      background: disabled ? "#ccc" : styleButton.background,
+    }}
+    // icon = {<SearchOutlined color = {colorButton} style = {{color: "#fff"}} />}
+    size={size}
     {...rests}
     
     >
