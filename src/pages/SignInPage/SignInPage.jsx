@@ -5,12 +5,15 @@ import {
   WrapperTextLight,
 } from "./style";
 import InputForm from "../../components/InputForm/InputForm";
-import { Button, Image } from "antd";
+import { Button, Image, message } from "antd";
 import imageLogo from "../../assets/img/logo-login.png";
 import { EyeFilled, EyeInvisibleFilled } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import ButtonComponent from "../../components/ButtonComponent/ButtonComponent";
-
+import * as UserService from "../../services/UserService";
+import { useMutation } from "@tanstack/react-query";
+import { useMutationHooks } from "../../hooks/useMutationHook";
+import Loading from "../../components/LoadingComponent/Loading";
 const SignInPage = () => {
   const [isShowPassword, setIsShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -23,11 +26,15 @@ const SignInPage = () => {
   const handleOnChangePassword = (value) => {
     setPassword(value);
   };
+
+  const mutation = useMutationHooks((data) => UserService.loginUser(data));
+  const { data, isLoading } = mutation;
+  console.log("mutation", mutation);
+
   const handleSignIn = () => {
+    mutation.mutate({ email, password });
     console.log("sign-in", email, password);
   };
-
-
 
   const handleNavigateSignUp = () => {
     navigate("/sign-up");
@@ -58,7 +65,7 @@ const SignInPage = () => {
             style={{ marginBottom: "10px" }}
             placeholder="abc@gmail.com"
             value={email}
-            onChange = {handleOnChangeEmail}
+            onChange={handleOnChangeEmail}
           />
           <div style={{ position: "relative" }}>
             <span
@@ -81,23 +88,34 @@ const SignInPage = () => {
               onChange={handleOnChangePassword}
             />
           </div>
+          {data?.status === "ERR" && (
+            <span style={{ color: "red" }}>{data?.message}</span>
+          )}
 
-          <Button
-            disabled={!email || !password}
-            onClick = {handleSignIn}
-            style={{
+          
+            
               
-              background: !email || !password ? "#ccc" : "rgb(255, 57, 69)",
-              color: "#fff",
-              height: "48px",
-              width: "100%",
-              border: "1px solid",
-              fontWeight: "500",
-              margin: "26px 0 10px",
-            }}
-          >
-            Đăng nhập
-          </Button>
+               
+                  <Button
+                    
+                    disabled={!email || !password}
+                    onClick={handleSignIn}
+                    style={{
+                      background: !email || !password ? "#ccc" : "rgb(255, 57, 69)",
+                      color: "#fff",
+                      height: "48px",
+                      width: "100%",
+                      border: "1px solid",
+                      fontWeight: "500",
+                      margin: "26px 0 10px",
+                    }}
+                  >
+                    Đăng nhập
+                  </Button>
+               
+              
+            
+          
           <p>
             <WrapperTextLight>Quên mật khẩu</WrapperTextLight>
           </p>
