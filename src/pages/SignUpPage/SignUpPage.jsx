@@ -10,14 +10,19 @@ import imageLogo from "../../assets/img/logo-login.png";
 import { EyeFilled, EyeInvisibleFilled } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import ButtonComponent from "../../components/ButtonComponent/ButtonComponent";
-
+import * as UserService from "../../services/UserService";
+import { useMutationHooks } from "../../hooks/useMutationHook";
+import Loading from "../../components/LoadingComponent/Loading";
 const SignUpPage = () => {
   const [isShowPassword, setIsShowPassword] = useState(false);
   const [isShowConfirmPassword, setIsShowConfirmPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isSigningUp, setIsSigningUp] = useState(false);
   const navigate = useNavigate();
+  const mutation = useMutationHooks((data) => UserService.signupUser(data));
+  const { data, isLoading } = mutation;
   const handleOnChangeEmail = (value) => {
     setEmail(value);
   };
@@ -28,7 +33,20 @@ const SignUpPage = () => {
     setConfirmPassword(value);
   };
   const handleSignUp = () => {
-    console.log("sign-up", email, password, confirmPassword);
+    setIsSigningUp(true);
+    mutation.mutate(
+      { email, password, confirmPassword },
+      {
+        onSuccess: (data) => {
+          console.log("Đăng ký thành công", data);
+          setIsSigningUp(false);
+        },
+        onError: (error) => {
+          console.error("Lỗi đăng ký", error);
+          setIsSigningUp(false);
+        },
+      }
+    );
   };
 
   const handleNavigateSignIn = () => {
@@ -104,23 +122,30 @@ const SignUpPage = () => {
               onChange={handleOnChangeConfirmPassword}
             />
           </div>
+          {data?.status === "ERR" && <span style = {{color:"red", fontSize : "20px"}} >{data?.message}</span>}
 
-          <Button
-            disabled={
-              !email.length || !password.length || !confirmPassword.length}
-            onClick = {handleSignUp}
-            style={{
-              background: !email || !password  || !confirmPassword ? "#ccc" : "rgb(255, 57, 69)",
-              color: "#fff",
-              height: "48px",
-              width: "100%",
-              border: "1px solid",
-              fontWeight: "500",
-              margin: "26px 0 10px",
-            }}
-          >
-            Đăng ký
-          </Button>
+          <Loading isLoading={isSigningUp}>
+            <Button
+              disabled={
+                !email.length || !password.length || !confirmPassword.length
+              }
+              onClick={handleSignUp}
+              style={{
+                background:
+                  !email || !password || !confirmPassword
+                    ? "#ccc"
+                    : "rgb(255, 57, 69)",
+                color: "#fff",
+                height: "48px",
+                width: "100%",
+                border: "1px solid",
+                fontWeight: "500",
+                margin: "26px 0 10px",
+              }}
+            >
+              Đăng ký
+            </Button>
+          </Loading>
 
           <p>
             Bạn đã có tài khoản?{" "}

@@ -11,13 +11,13 @@ import { EyeFilled, EyeInvisibleFilled } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import ButtonComponent from "../../components/ButtonComponent/ButtonComponent";
 import * as UserService from "../../services/UserService";
-import { useMutation } from "@tanstack/react-query";
 import { useMutationHooks } from "../../hooks/useMutationHook";
 import Loading from "../../components/LoadingComponent/Loading";
 const SignInPage = () => {
   const [isShowPassword, setIsShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   const navigate = useNavigate();
   const handleOnChangeEmail = (value) => {
@@ -32,8 +32,20 @@ const SignInPage = () => {
   console.log("mutation", mutation);
 
   const handleSignIn = () => {
-    mutation.mutate({ email, password });
-    console.log("sign-in", email, password);
+    setIsSigningIn(true);
+    mutation.mutate(
+      { email, password },
+      {
+        onSuccess: (data) => {
+          console.log("Đăng nhập thành công", data);
+          setIsSigningIn(false);
+        },
+        onError: (error) => {
+          console.error("Lỗi đăng nhập", error);
+          setIsSigningIn(false);
+        },
+      }
+    );
   };
 
   const handleNavigateSignUp = () => {
@@ -89,33 +101,43 @@ const SignInPage = () => {
             />
           </div>
           {data?.status === "ERR" && (
-            <span style={{ color: "red" }}>{data?.message}</span>
+            <span style={{ color:"red", fontSize : "20px"}}>{data?.message}</span>
           )}
 
-          
-            
-              
-               
-                  <Button
-                    
-                    disabled={!email || !password}
-                    onClick={handleSignIn}
-                    style={{
-                      background: !email || !password ? "#ccc" : "rgb(255, 57, 69)",
-                      color: "#fff",
-                      height: "48px",
-                      width: "100%",
-                      border: "1px solid",
-                      fontWeight: "500",
-                      margin: "26px 0 10px",
-                    }}
-                  >
-                    Đăng nhập
-                  </Button>
-               
-              
-            
-          
+          {/* <Button
+            disabled={!email || !password}
+            onClick={handleSignIn}
+            style={{
+              background: !email || !password ? "#ccc" : "rgb(255, 57, 69)",
+              color: "#fff",
+              height: "48px",
+              width: "100%",
+              border: "1px solid",
+              fontWeight: "500",
+              margin: "26px 0 10px",
+            }}
+          >
+            Đăng nhập
+          </Button> */}
+          <Loading isLoading={isSigningIn}>
+            <Button
+              disabled={!email || !password || isSigningIn}
+              onClick={handleSignIn}
+              style={{
+                background: !email || !password ? "#ccc" : "rgb(255, 57, 69)",
+                color: "#fff",
+                height: "48px",
+                width: "100%",
+                border: "1px solid",
+                fontWeight: "500",
+                margin: "26px 0 10px",
+                cursor: isSigningIn ? "not-allowed" : "pointer",
+              }}
+            >
+              {isSigningIn ? "Đang đăng nhập..." : "Đăng nhập"}
+            </Button>
+          </Loading>
+
           <p>
             <WrapperTextLight>Quên mật khẩu</WrapperTextLight>
           </p>
