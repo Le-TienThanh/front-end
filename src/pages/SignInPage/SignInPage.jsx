@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   WrapperContainerLeft,
   WrapperContainerRight,
@@ -13,11 +13,16 @@ import ButtonComponent from "../../components/ButtonComponent/ButtonComponent";
 import * as UserService from "../../services/UserService";
 import { useMutationHooks } from "../../hooks/useMutationHook";
 import Loading from "../../components/LoadingComponent/Loading";
+import * as messageSignIn from "../../components/Message/Message";
+import { jwtDecode } from "jwt-decode";
+import { useDispatch } from "react-redux";
+import { updateUser } from "../../redux/slides/userSlide";
 const SignInPage = () => {
   const [isShowPassword, setIsShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const dispatch = useDispatch();
 
   const navigate = useNavigate();
   const handleOnChangeEmail = (value) => {
@@ -28,7 +33,28 @@ const SignInPage = () => {
   };
 
   const mutation = useMutationHooks((data) => UserService.loginUser(data));
-  const { data, isLoading } = mutation;
+  const { data, isLoading, isSuccess, isError } = mutation;
+  useEffect(() => {
+    if(isSuccess){
+      navigate("/");
+      localStorage.setItem("access_token", data?.access_token);
+      if(data?.access_token){
+        const decoded = jwtDecode(data?.access_token);
+        console.log("Decoded JWT:", decoded);
+        if(decoded?.id){
+          handleGetDetailsUser(decoded?.id, data?.access_token);
+
+        }
+      }
+
+    }
+
+  }, [isSuccess])
+  const handleGetDetailsUser = async(id, token) => {
+    const res = await UserService.getDetailsUser(id, token);
+    dispatch(updateUser({...res?.data, access_token: token}));
+    console.log("res", res);
+  }
   console.log("mutation", mutation);
 
   const handleSignIn = () => {
@@ -72,7 +98,7 @@ const SignInPage = () => {
       >
         <WrapperContainerLeft>
           <h1>Xin chào,</h1>
-          <p style={{ fontSize: "15px" }}>Đăng nhập và tạo tài khoản</p>
+          <p style={{ fontSize: "15px" }}>Đăng nhập vào trang web</p>
           <InputForm
             style={{ marginBottom: "10px" }}
             placeholder="abc@gmail.com"
@@ -141,7 +167,7 @@ const SignInPage = () => {
           <p>
             <WrapperTextLight>Quên mật khẩu</WrapperTextLight>
           </p>
-          <p>
+          <p style={{ fontSize: "15px" }}>
             Chưa có tài khoản?{" "}
             <WrapperTextLight onClick={handleNavigateSignUp}>
               Tạo tài khoản

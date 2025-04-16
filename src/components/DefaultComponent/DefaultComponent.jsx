@@ -17,7 +17,7 @@ import HeaderComponent from "../HeaderComponent/HeaderComponent";
 const DefaultComponent = ({ children, stylesHeader, stylesBody }) => {
   return (
     <div >
-      <HeaderComponent style={stylesHeader} />
+      <HeaderComponent styles={stylesHeader} />
       <div style={stylesBody}>
         {children}
       </div>

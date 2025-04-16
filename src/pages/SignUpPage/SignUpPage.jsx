@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   WrapperContainerLeft,
   WrapperContainerRight,
@@ -13,6 +13,7 @@ import ButtonComponent from "../../components/ButtonComponent/ButtonComponent";
 import * as UserService from "../../services/UserService";
 import { useMutationHooks } from "../../hooks/useMutationHook";
 import Loading from "../../components/LoadingComponent/Loading";
+import * as message from "../../components/Message/Message";
 const SignUpPage = () => {
   const [isShowPassword, setIsShowPassword] = useState(false);
   const [isShowConfirmPassword, setIsShowConfirmPassword] = useState(false);
@@ -22,7 +23,16 @@ const SignUpPage = () => {
   const [isSigningUp, setIsSigningUp] = useState(false);
   const navigate = useNavigate();
   const mutation = useMutationHooks((data) => UserService.signupUser(data));
-  const { data, isLoading } = mutation;
+  const { data, isLoading, isSuccess, isError } = mutation;
+  useEffect(() => {
+    if(isSuccess) {
+      message.success();
+      handleNavigateSignIn();
+    } else if(isError) {
+      message.error();
+    }
+
+  }, [isSuccess, isError]);
   const handleOnChangeEmail = (value) => {
     setEmail(value);
   };
@@ -147,7 +157,7 @@ const SignUpPage = () => {
             </Button>
           </Loading>
 
-          <p>
+          <p style={{ fontSize: "15px" }}>
             Bạn đã có tài khoản?{" "}
             <WrapperTextLight onClick={handleNavigateSignIn}>
               Đăng nhập
