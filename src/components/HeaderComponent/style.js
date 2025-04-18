@@ -5,8 +5,7 @@ export const WrapperHeader = styled(Row)`
   background-color: #43e8e4;
   padding: 10px 120px;
   gap: 16px;
-  flex-wrap: nowrap
-  
+  flex-wrap: nowrap;
 `;
 // left header: text
 export const TextWrapperHeader = styled.span`
@@ -22,11 +21,18 @@ export const WrapperHeaderAccout = styled.div`
   align-items: center;
   color: #fff;
   gap: 10px;
-  
 `;
 
 export const WrapperTextHeaderSmall = styled.span`
   font-size: 12px;
   color: #fff;
   white-space: nowrap;
+`;
+export const WrapperContentPopup = styled.p`
+  cursor: pointer;
+  &:hover {
+    background: #ccc;
+    color: #fff;
+    border-radius: 5px;
+  }
 `;
