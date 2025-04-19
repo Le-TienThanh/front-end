@@ -50,7 +50,6 @@ const ProfilePage = () => {
     } else if (isError) {
       message.error("Cập nhật thất bại!");
     }
-    
   }, [isSuccess, isError]);
   const handleGetDetailsUser = async (id, token) => {
     const res = await UserService.getDetailsUser(id, token);
@@ -69,13 +68,12 @@ const ProfilePage = () => {
   const handleOnChangeAddress = (value) => {
     setAddress(value);
   };
-  const handleOnChangeAvatar = async(filelist) => {
-
-    const file = filelist[0]
-    if(!file.url && !file.preview) {
-      file.preview = await getBase64(file.originFileObj)
+  const handleOnChangeAvatar = async (filelist) => {
+    const file = filelist[0];
+    if (!file.url && !file.preview) {
+      file.preview = await getBase64(file.originFileObj);
     }
-    setAvatar(file.preview)
+    setAvatar(file.preview);
   };
   const handleUpdate = () => {
     mutation.mutate({
@@ -162,10 +160,7 @@ const ProfilePage = () => {
           </WrapperInput>
           <WrapperInput>
             <WrapperLabel htmlFor="avatar">Avatar</WrapperLabel>
-            <WrapperUploadFile
-              onChange = {handleOnChangeAvatar}
-              maxCount={1}
-            >
+            <WrapperUploadFile onChange={handleOnChangeAvatar} maxCount={1}>
               <Button icon={<UploadOutlined />}>Upload Directory</Button>
             </WrapperUploadFile>
             {avatar && (
@@ -180,7 +175,7 @@ const ProfilePage = () => {
                   objectFit: "cover",
                 }}
               />
-              )}
+            )}
             {/* <InputForm
               style={{ marginBottom: "5px", margin: "5px 0", width: "300px" }}
               value={avatar}

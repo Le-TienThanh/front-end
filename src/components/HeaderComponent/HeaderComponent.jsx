@@ -30,24 +30,26 @@ const HeaderComponent = () => {
   const handleNavigateLogin = () => {
     navigate("/sign-in");
   };
-  const handleLogout = async() => {
+  const handleLogout = async () => {
     setLoading(true);
     await UserService.logoutUser();
     dispatch(resetUser());
     setLoading(false);
-
-  }
+  };
   useEffect(() => {
     setLoading(true);
     setUserName(user?.name);
     setUserAvatar(user?.avatar);
     setLoading(false);
-
   }, [user?.name, user?.avatar]);
   const content = (
     <div>
-      <WrapperContentPopup onClick={handleLogout}>Đăng xuất</WrapperContentPopup>
-      <WrapperContentPopup onClick={() => navigate("/profile-user")}>Thông tin người dùng</WrapperContentPopup>
+      <WrapperContentPopup onClick={handleLogout}>
+        Đăng xuất
+      </WrapperContentPopup>
+      <WrapperContentPopup onClick={() => navigate("/profile-user")}>
+        Thông tin người dùng
+      </WrapperContentPopup>
     </div>
   );
 
@@ -69,7 +71,7 @@ const HeaderComponent = () => {
           span={6}
           style={{ display: "flex", gap: "54px", alignItems: "center" }}
         >
-          <Loading isLoading={loading} >
+          <Loading isLoading={loading}>
             <WrapperHeaderAccout>
               {userAvatar ? (
                 <img
@@ -85,17 +87,20 @@ const HeaderComponent = () => {
               ) : (
                 <UserOutlined style={{ fontSize: "30px" }} />
               )}
-              
-  
+
               {user?.access_token ? (
                 <>
-                  
-                  <Popover content={content}  trigger="click">
-                    <div style={{ cursor: "pointer" }}>{userName?.length ? userName : user?.email }</div>
+                  <Popover content={content} trigger="click">
+                    <div style={{ cursor: "pointer" }}>
+                      {userName?.length ? userName : user?.email}
+                    </div>
                   </Popover>
                 </>
               ) : (
-                <div onClick={handleNavigateLogin} style={{ cursor: "pointer" }}>
+                <div
+                  onClick={handleNavigateLogin}
+                  style={{ cursor: "pointer" }}
+                >
                   <WrapperTextHeaderSmall>
                     Đăng nhập/ Đăng ký
                   </WrapperTextHeaderSmall>
@@ -107,7 +112,7 @@ const HeaderComponent = () => {
               )}
             </WrapperHeaderAccout>
           </Loading>
-            
+
           <div>
             <Badge count={4} size="small">
               <ShoppingCartOutlined

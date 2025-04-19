@@ -36,7 +36,6 @@ export const WrapperUploadFile = styled(Upload)`
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    
   }
   & .ant-upload-list-item-infor {
     display: none;
