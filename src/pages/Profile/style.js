@@ -32,12 +32,10 @@ export const WrapperInput = styled.div`
 `;
 
 export const WrapperUploadFile = styled(Upload)`
-  & .ant-upload.ant-upload-select.ant-upload-select-picture-card {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-  }
-  & .ant-upload-list-item-infor {
+ 
+
+  & .ant-upload-list-item.ant-upload-list-item-error {
     display: none;
   }
+   
 `;
