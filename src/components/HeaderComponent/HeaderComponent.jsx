@@ -1,6 +1,6 @@
 import { Row, Col, Badge, Popover, Button } from "antd";
 
-import react, { useState } from "react";
+import react, { useEffect, useState } from "react";
 import {
   WrapperHeader,
   TextWrapperHeader,
@@ -19,29 +19,39 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { click } from "@testing-library/user-event/dist/click";
 import { Content } from "antd/es/layout/layout";
-import * as UserService from "../../services/UserService"
-import {resetUser} from '../../redux/slides/userSlide'
+import * as UserService from "../../services/UserService";
+import { resetUser } from "../../redux/slides/userSlide";
 import Loading from "../LoadingComponent/Loading";
 
 const HeaderComponent = () => {
   const navigate = useNavigate();
   const user = useSelector((state) => state.user);
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
   const handleNavigateLogin = () => {
     navigate("/sign-in");
   };
   const dispatch = useDispatch();
-  const handleLogout = async() => {
-    setLoading(true)
-    await UserService.loginUser()
-    dispatch(resetUser())
-    setLoading(false)
-
-  }
+  const [userName, setUserName] = useState("");
+  const handleLogout = async () => {
+    setLoading(true);
+    await UserService.loginUser();
+    dispatch(resetUser());
+    setLoading(false);
+  };
+  useEffect(() => {
+    setLoading(true);
+    setUserName(user?.name);
+    setLoading(false);
+  }, [user?.name]);
   const content = (
     <div>
-      <WrapperContentPopup onClick={handleLogout}>Đăng xuất</WrapperContentPopup>
-      <WrapperContentPopup>Thông tin người dùng</WrapperContentPopup>
+      <WrapperContentPopup onClick={handleLogout}>
+        Đăng xuất
+      </WrapperContentPopup>
+      <WrapperContentPopup onClick={() => navigate("/profile-user")}>
+        Thông tin người dùng
+      </WrapperContentPopup>
+      {/* chuyen huong trang sang profile-user */}
     </div>
   );
 
@@ -66,15 +76,20 @@ const HeaderComponent = () => {
           <Loading isLoading={loading}>
             <WrapperHeaderAccout>
               <UserOutlined style={{ fontSize: "30px" }} />
-  
-              {user?.name ? (
+
+              {user?.access_token ? (
                 <>
-                  <Popover content={content} trigger='click'>
-                    <div style={{ cursor: "pointer" }}>{user.name}</div>
+                  <Popover content={content} trigger="click">
+                    <div style={{ cursor: "pointer" }}>
+                      {userName?.length ? userName : user?.email}
+                    </div>
                   </Popover>
                 </>
               ) : (
-                <div onClick={handleNavigateLogin} style={{ cursor: "pointer" }}>
+                <div
+                  onClick={handleNavigateLogin}
+                  style={{ cursor: "pointer" }}
+                >
                   <WrapperTextHeaderSmall>
                     Đăng nhập/ Đăng ký
                   </WrapperTextHeaderSmall>
