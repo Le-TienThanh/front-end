@@ -23,7 +23,7 @@ import * as UserService from "../../services/UserService";
 import { resetUser } from "../../redux/slides/userSlide";
 import Loading from "../LoadingComponent/Loading";
 
-const HeaderComponent = () => {
+const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
   const navigate = useNavigate();
   const user = useSelector((state) => state.user);
   const [loading, setLoading] = useState(false);
@@ -35,7 +35,7 @@ const HeaderComponent = () => {
   };
   const dispatch = useDispatch();
   const [userName, setUserName] = useState("");
-  const [userAvatar, setUserAvatar] = useState("")
+  const [userAvatar, setUserAvatar] = useState("");
   const handleLogout = async () => {
     setLoading(true);
     await UserService.loginUser();
@@ -50,33 +50,45 @@ const HeaderComponent = () => {
   }, [user?.name, user?.avatar]);
   const content = (
     <div>
-      <WrapperContentPopup onClick={handleLogout}>
-        Đăng xuất
-      </WrapperContentPopup>
       <WrapperContentPopup onClick={() => navigate("/profile-user")}>
         Thông tin người dùng
       </WrapperContentPopup>
       {/* chuyen huong trang sang profile-user */}
+      {user?.isAdmin && (
+        <WrapperContentPopup onClick={() => navigate("/system/admin")}>
+          Quản lý hệ thống
+        </WrapperContentPopup>
+      )}
+      <WrapperContentPopup onClick={handleLogout}>
+        Đăng xuất
+      </WrapperContentPopup>
     </div>
   );
 
   return (
     <div>
-      <WrapperHeader>
+      <WrapperHeader
+        style={{
+          justifyContent:
+            isHiddenCart && isHiddenSearch ? "space-between" : "unset",
+        }}
+      >
         <Col span={5}>
-          <TextWrapperHeader
-          style={{cursor: "pointer"}}
-          onClick={goHomePage}
-          >MY SHOP</TextWrapperHeader>
+          <TextWrapperHeader style={{ cursor: "pointer" }} onClick={goHomePage}>
+            MY SHOP
+          </TextWrapperHeader>
         </Col>
-        <Col span={13}>
-          <ButtonInputSearch
-            bordered={false}
-            placeholder="Tìm kiếm"
-            size="large"
-            textButton="Tìm kiếm"
-          />
-        </Col>
+        {!isHiddenSearch && (
+          <Col span={13}>
+            <ButtonInputSearch
+              bordered={false}
+              placeholder="Tìm kiếm"
+              size="large"
+              textButton="Tìm kiếm"
+            />
+          </Col>
+        )}
+
         <Col
           span={6}
           style={{ display: "flex", gap: "54px", alignItems: "center" }}
@@ -85,20 +97,18 @@ const HeaderComponent = () => {
             <WrapperHeaderAccout>
               {userAvatar ? (
                 <img
-                src = {userAvatar}
-                alt="avatar"
-                style={{
-                  height: "30px",
-                  width: "30px",
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                }}
+                  src={userAvatar}
+                  alt="avatar"
+                  style={{
+                    height: "30px",
+                    width: "30px",
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                  }}
                 />
-
               ) : (
                 <UserOutlined style={{ fontSize: "30px" }} />
               )}
-              
 
               {user?.access_token ? (
                 <>
@@ -124,14 +134,16 @@ const HeaderComponent = () => {
               )}
             </WrapperHeaderAccout>
           </Loading>
-          <div>
-            <Badge count={4} size="small">
-              <ShoppingCartOutlined
-                style={{ fontSize: "30px", color: "#fff" }}
-              />
-            </Badge>
-            <WrapperTextHeaderSmall>Giỏ hàng</WrapperTextHeaderSmall>
-          </div>
+          {!isHiddenCart && (
+            <div>
+              <Badge count={4} size="small">
+                <ShoppingCartOutlined
+                  style={{ fontSize: "30px", color: "#fff" }}
+                />
+              </Badge>
+              <WrapperTextHeaderSmall>Giỏ hàng</WrapperTextHeaderSmall>
+            </div>
+          )}
         </Col>
       </WrapperHeader>
     </div>
