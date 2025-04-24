@@ -10,11 +10,13 @@ export const WrapperHeader = styled(Row)`
 `;
 // left header: text
 export const TextWrapperHeader = styled.span`
-  font-size: 20px;
+  font-size: 30px;
   color: white;
   font-weight: bold;
   text-align: left;
   align-items: center;
+  
+  
 `;
 
 export const WrapperHeaderAccout = styled.div`

@@ -30,6 +30,9 @@ const HeaderComponent = () => {
   const handleNavigateLogin = () => {
     navigate("/sign-in");
   };
+  const goHomePage = () => {
+    navigate("/");
+  };
   const dispatch = useDispatch();
   const [userName, setUserName] = useState("");
   const [userAvatar, setUserAvatar] = useState("")
@@ -61,7 +64,10 @@ const HeaderComponent = () => {
     <div>
       <WrapperHeader>
         <Col span={5}>
-          <TextWrapperHeader>MY SHOP</TextWrapperHeader>
+          <TextWrapperHeader
+          style={{cursor: "pointer"}}
+          onClick={goHomePage}
+          >MY SHOP</TextWrapperHeader>
         </Col>
         <Col span={13}>
           <ButtonInputSearch
@@ -82,8 +88,8 @@ const HeaderComponent = () => {
                 src = {userAvatar}
                 alt="avatar"
                 style={{
-                  height: "50px",
-                  width: "50px",
+                  height: "30px",
+                  width: "30px",
                   borderRadius: "50%",
                   objectFit: "cover",
                 }}
