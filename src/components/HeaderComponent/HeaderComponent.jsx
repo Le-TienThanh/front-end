@@ -32,6 +32,7 @@ const HeaderComponent = () => {
   };
   const dispatch = useDispatch();
   const [userName, setUserName] = useState("");
+  const [userAvatar, setUserAvatar] = useState("")
   const handleLogout = async () => {
     setLoading(true);
     await UserService.loginUser();
@@ -41,8 +42,9 @@ const HeaderComponent = () => {
   useEffect(() => {
     setLoading(true);
     setUserName(user?.name);
+    setUserAvatar(user?.avatar);
     setLoading(false);
-  }, [user?.name]);
+  }, [user?.name, user?.avatar]);
   const content = (
     <div>
       <WrapperContentPopup onClick={handleLogout}>
@@ -75,7 +77,22 @@ const HeaderComponent = () => {
         >
           <Loading isLoading={loading}>
             <WrapperHeaderAccout>
-              <UserOutlined style={{ fontSize: "30px" }} />
+              {userAvatar ? (
+                <img
+                src = {userAvatar}
+                alt="avatar"
+                style={{
+                  height: "50px",
+                  width: "50px",
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                }}
+                />
+
+              ) : (
+                <UserOutlined style={{ fontSize: "30px" }} />
+              )}
+              
 
               {user?.access_token ? (
                 <>

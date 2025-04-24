@@ -32,7 +32,11 @@ export const WrapperInput = styled.div`
 `;
 
 export const WrapperUploadFile = styled(Upload)`
-  & .ant-upload-list-item.ant-upload-list-item-error {
-    display: none;
+  
+  & .ant-upload-list.ant-upload-list-text{
+  display: none;
+  }
+  & .ant-upload-list-item-container{
+  display: none;
   }
 `;
