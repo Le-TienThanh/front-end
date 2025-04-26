@@ -19,6 +19,7 @@ import * as messageProduct from "../../components/Message/Message";
 import { useQuery } from "@tanstack/react-query";
 import DrawerComponent from "../DrawerComponent/DrawerComponent";
 import { useSelector } from "react-redux";
+import ModalComponent from "../ModalComponent/ModalComponent";
 const AdminProduct = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -61,7 +62,7 @@ const AdminProduct = () => {
   });
   const mutationUpdate = useMutationHooks((data) => {
     const { id, token, ...rests } = data;
-    const res = ProductService.updateProduct(id, token, rests);
+    const res = ProductService.updateProduct(id, token, {...rests});
     return res;
   });
 
@@ -76,14 +77,15 @@ const AdminProduct = () => {
     isSuccess: isSuccessUpdated,
     isError: isErrorUpdated,
   } = mutationUpdate;
-  const { isLoading: isLoadingProducts, data: products } = useQuery({
+  const queryProduct = useQuery({
     queryKey: ["products"],
     queryFn: getAllProducts,
   });
+  const {isLoading: isLoadingProducts, data:products} = queryProduct;
   useEffect(() => {
     if (isSuccess && data?.status === "OK") {
       messageProduct.success();
-      handleCloseDrawer();
+      handleCancel();
     } else if (isError) {
       messageProduct.error();
     }
@@ -91,11 +93,13 @@ const AdminProduct = () => {
   useEffect(() => {
     if (isSuccessUpdated && dataUpdated?.status === "OK") {
       messageProduct.success();
-      handleCancel();
+      handleCloseDrawer();
     } else if (isErrorUpdated) {
       messageProduct.error();
+      setIsLoadingUpdate(false);
     }
-  }, [isSuccessUpdated]);
+    
+  }, [isSuccessUpdated, isErrorUpdated]);
   const handleCloseDrawer = () => {
     setIsOpenDrawer(false);
     setStateProductDetails({
@@ -128,12 +132,12 @@ const AdminProduct = () => {
     form.resetFields();
   };
   const handleOk = () => {
-    onFinishOK();
+    onFinish();
   };
   const handleSubmit = () => {
-    onFinishSubmit();
+    onFinishOK();
   };
-  const onFinishSubmit = () => {
+  const onFinish = () => {
     setIsSubmitting(true); // bật loading
 
     mutation.mutate(stateProduct, {
@@ -146,7 +150,8 @@ const AdminProduct = () => {
         console.error(error);
       },
       onSettled: () => {
-        setIsSubmitting(false); // tắt loading dù thành công hay thất bại
+        // setIsSubmitting(false); // tắt loading dù thành công hay thất bại
+        queryProduct.refetch();
       },
     });
 
@@ -225,15 +230,12 @@ const AdminProduct = () => {
   }, [form, stateProductDetails]);
   useEffect(() => {
     if (rowSelected) {
+      setIsLoadingUpdate(true);
       fetchGetDetailsProduct(rowSelected);
     }
   }, [rowSelected]);
   const handleDetailsProduct = () => {
-    if (rowSelected) {
-      setIsLoadingUpdate(true);
-      fetchGetDetailsProduct(rowSelected);
-     
-    }
+    
      setIsOpenDrawer(true);
 
     console.log("rowSelected", rowSelected);
@@ -242,7 +244,11 @@ const AdminProduct = () => {
     mutationUpdate.mutate({
       id: rowSelected,
       token: user?.access_token,
-      stateProductDetails
+      ...stateProductDetails
+    },{
+      onSettled: () => {
+        queryProduct.refetch();
+      }
     });
   };
   const renderAction = () => {
@@ -250,6 +256,7 @@ const AdminProduct = () => {
       <div>
         <DeleteOutlined
           style={{ color: "red", fontSize: "30px", cursor: "pointer" }}
+          
         />
         <EditOutlined
           style={{ color: "blue", fontSize: "30px", cursor: "pointer" }}
@@ -422,11 +429,11 @@ const AdminProduct = () => {
               </WrapperUploadFile>
             </Form.Item>
 
-            {/* <Form.Item label={null}>
+            <Form.Item label={null}>
                 <Button type="primary" htmlType="submit">
                   Submit
                 </Button>
-              </Form.Item> */}
+              </Form.Item>
           </Form>
         </Loading>
       </Modal>
@@ -436,7 +443,7 @@ const AdminProduct = () => {
         onClose={() => setIsOpenDrawer(false)}
         height="100vh"
       >
-        <Loading isLoading={isLoadingUpdate}>
+        <Loading isLoading={isLoadingUpdate }>
           <Form
             name="basic"
             labelCol={{ span: 4 }}
@@ -551,6 +558,7 @@ const AdminProduct = () => {
           </Form>
         </Loading>
       </DrawerComponent>
+      
     </div>
   );
 };
