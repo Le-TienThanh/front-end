@@ -45,3 +45,15 @@ export const deleteProduct = async (id, access_token, data) => {
   );
   return response.data;
 };
+export const deleteManyProduct = async (data, access_token) => {
+  const response = await axiosJWT.post(
+    `${process.env.REACT_APP_API_URL}/product/delete-many`,data,
+    
+    {
+      headers: {
+        token: `Bearer ${access_token}`,
+      },
+    }
+  );
+  return response.data;
+};

@@ -1,33 +1,26 @@
 import React, { useEffect, useRef, useState } from "react";
-import { WrapperHeader } from "./style";
-import { Button, Space } from "antd";
-import {
-  PlusCircleFilled,
-  PlusOutlined,
-  SearchOutlined,
-} from "@ant-design/icons";
-import { Checkbox, Form, Input, message, Modal } from "antd";
+import { WrapperHeader, WrapperUploadFile } from "./style";
+import Tablecomponent from "../TableComponent/TableComponent";
+import { Button, Form, Input, Space } from "antd";
 import {
   DeleteOutlined,
   EditOutlined,
+  PlusOutlined,
+  SearchOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
-import TableComponent from "../TableComponent/TableComponent";
-import { WrapperUploadFile } from "../../pages/Profile/style";
-import { getBase64 } from "../../utils";
-import { createProduct } from "../../services/ProductService";
-import * as ProductService from "../../services/ProductService";
-import { useMutationHooks } from "../../hooks/useMutationHook";
+import ModalComponent from "../ModalComponent/ModalComponent";
 import Loading from "../LoadingComponent/Loading";
-import * as messageProduct from "../../components/Message/Message";
+import DrawerComponent from "../DrawerComponent/DrawerComponent";
+import TableComponent from "../TableComponent/TableComponent";
+import { getBase64 } from "../../utils";
+import * as messageUser from "../../components/Message/Message";
+import { useSelector } from "react-redux";
+import { useMutationHooks } from "../../hooks/useMutationHook";
+import * as UserService from "../../services/UserService";
 import { useQuery } from "@tanstack/react-query";
 import InputComponent from "../InputComponent/InputComponent";
-import { useSelector } from "react-redux";
-import DrawerComponent from "../DrawerComponent/DrawerComponent";
-import ModalComponent from "../ModalComponent/ModalComponent";
-import * as UserService from "../../services/UserService";
-const AdminProduct = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+const AdminUser = () => {
   const [isCreate, setIsCreate] = useState(false);
   const [rowSelected, setRowSelected] = useState("");
   const [isLoadingUpdate, setIsLoadingUpdate] = useState(false);
@@ -55,25 +48,10 @@ const AdminProduct = () => {
   });
 
   const [form] = Form.useForm();
-  const mutation = useMutationHooks((data) => {
-    const { name, price, description, rating, image, type, countInStock } =
-      data;
-    const res = UserService.signupUser({
-      name,
-      price,
-      description,
-      rating,
-      image,
-      type,
-      countInStock,
-    });
-    return res;
-  });
-  const { data, isLoading, isSuccess, isError } = mutation;
 
   const mutationUpdate = useMutationHooks((data) => {
     const { id, token, ...rests } = data;
-    const res = UserService.updateUser(id, token, { ...rests });
+    const res = UserService.updateUser(id, { ...rests }, token);
     return res;
   });
   const mutationDeleted = useMutationHooks((data) => {
@@ -81,6 +59,12 @@ const AdminProduct = () => {
     const res = UserService.deleteUser(id, token);
     return res;
   });
+  const mutationDeletedMany = useMutationHooks((data) => {
+    const { token, ...ids } = data;
+    const res = UserService.deleteManyUser(ids, token);
+    return res;
+  });
+
 
   const {
     data: dataUpdated,
@@ -94,40 +78,45 @@ const AdminProduct = () => {
     isSuccess: isSuccessDeleted,
     isError: isErrorDeleted,
   } = mutationDeleted;
+  const {
+    data: dataDeletedMany,
+    isLoading: isLoadingDeletedMany,
+    isSuccess: isSuccessDeletedMany,
+    isError: isErrorDeletedMany,
+  } = mutationDeletedMany;
 
   useEffect(() => {
-    if (isSuccess && data?.status === "OK") {
-      messageProduct.success("Thành công");
-      handleCancel();
-    } else if (isError) {
-      messageProduct.error("Đã xảy ra lỗi");
-    }
-  }, [isSuccess]);
-  useEffect(() => {
     if (isSuccessUpdated && dataUpdated?.status === "OK") {
-      messageProduct.success();
+      messageUser.success();
       handleCloseDrawer();
     } else if (isErrorUpdated) {
-      messageProduct.error();
+      messageUser.error();
     }
   }, [isSuccessUpdated]);
   useEffect(() => {
     if (isSuccessDeleted && dataDeleted?.status === "OK") {
-      messageProduct.success();
+      messageUser.success();
       handleCancelDelete();
     } else if (isErrorDeleted) {
-      messageProduct.error();
+      messageUser.error();
     }
   }, [isSuccessDeleted]);
+  useEffect(() => {
+    if (isSuccessDeletedMany && dataDeletedMany?.status === "OK") {
+      messageUser.success();
+    } else if (isErrorDeletedMany) {
+      messageUser.error();
+    }
+  }, [isSuccessDeletedMany]);
   useEffect(() => {
     form.setFieldsValue(stateUserDetails);
   }, [form, stateUserDetails]);
   useEffect(() => {
-    if (rowSelected) {
+    if (rowSelected && isOpenDrawer) {
       setIsLoadingUpdate(true);
       fetchGetDetailsUser(rowSelected);
     }
-  }, [rowSelected]);
+  }, [rowSelected, isOpenDrawer]);
   useEffect(() => {
     if (isModalOpenDelete) {
       mutationDeleted.reset(); // đảm bảo reset trạng thái loading/success/error
@@ -142,28 +131,16 @@ const AdminProduct = () => {
         email: res?.data?.email,
         phone: res?.data?.phone,
         isAdmin: res?.data?.isAdmin,
-        
       });
     }
     setIsLoadingUpdate(false);
   };
 
-  const handleCancel = () => {
-    setIsModalOpen(false);
-    setStateUser({
-      name: "",
-      email: "",
-      phone: "",
-      isAdmin: false,
-
-    });
-    form.resetFields();
-  };
   const handleCancelDelete = () => {
     setIsModalOpenDelete(false);
     mutationDeleted.reset(); // chat gpt
   };
-  const handleDeleteProduct = () => {
+  const handleDeleteUser = () => {
     mutationDeleted.mutate(
       { id: rowSelected, token: user?.access_token },
       {
@@ -173,13 +150,7 @@ const AdminProduct = () => {
       }
     );
   };
-  const handleOnchange = (e) => {
-    setStateUser({
-      ...stateUser,
-      [e.target.name]: e.target.value,
-    });
-    console.log("e.target.name", e.target.name, e.target.value);
-  };
+
   const handleOnchangeImage = async ({ fileList }) => {
     const file = fileList[0];
     if (!file.url && !file.preview) {
@@ -213,12 +184,9 @@ const AdminProduct = () => {
     setIsOpenDrawer(false);
     setStateUserDetails({
       name: "",
-      price: "",
-      description: "",
-      rating: "",
-      image: "",
-      type: "",
-      countInStock: "",
+      email: "",
+      phone: "",
+      isAdmin: "",
     });
     form.resetFields();
   };
@@ -237,26 +205,7 @@ const AdminProduct = () => {
     setSortedInfo(sorter);
   };
 
-  const onFinish = () => {
-    setIsCreate(true); // bật loading
-
-    mutation.mutate(stateUser, {
-      onSuccess: (data) => {
-        messageProduct.success("Thêm sản phẩm thành công!");
-        // thực hiện hành động khác nếu cần
-      },
-      onError: (error) => {
-        messageProduct.error("Đã xảy ra lỗi khi thêm sản phẩm!");
-        console.error(error);
-      },
-      onSettled: () => {
-        queryUser.refetch();
-      },
-    });
-
-    console.log("finish", stateUser);
-  };
-  const onUpdateProduct = () => {
+  const onUpdateUser = () => {
     mutationUpdate.mutate(
       {
         id: rowSelected,
@@ -270,10 +219,20 @@ const AdminProduct = () => {
       }
     );
   };
+  
+  const handleDeleteManyUsers = (ids) => {
+    mutationDeletedMany.mutate(
+      { ids: ids, token: user?.access_token },
+      {
+        onSettled: () => {
+          queryUser.refetch();
+        },
+      }
+    );
+  };
 
   const getAllUsers = async () => {
-    const res = await UserService.getAllUser();
-    console.log("res", res);
+    const res = await UserService.getAllUser(user?.access_token);
     return res;
   };
   const queryUser = useQuery({
@@ -405,25 +364,20 @@ const AdminProduct = () => {
   const dataTable =
     users?.data?.length &&
     users?.data?.map((user) => {
-      return { ...user, key: user._id, isAdmin: user?.Admin ? "TRUE" : "FALSE" };
+      return {
+        ...user,
+        key: user._id,
+        isAdmin: user.isAdmin ? "TRUE" : "FALSE",
+      };
     });
+
   return (
     <div>
-      <WrapperHeader>Quản lý sản phẩm</WrapperHeader>
-      <div style={{ marginTop: "20px", marginBottom: "20px" }}>
-        <Button
-          style={{
-            height: "150px",
-            width: "150px",
-            borderRadius: "6px",
-          }}
-          onClick={() => setIsModalOpen(true)}
-        >
-          <PlusOutlined style={{ fontSize: "60px" }} />
-        </Button>
-      </div>
+      <WrapperHeader>Quản lý người dùng</WrapperHeader>
+
       <div>
         <TableComponent
+        handleDeleteMany={handleDeleteManyUsers}
           columns={columns}
           isLoading={isLoadingUsers}
           data={dataTable}
@@ -436,20 +390,20 @@ const AdminProduct = () => {
           }}
         />
       </div>
-      <ModalComponent
-        forceRender
-        title="Tạo sản phẩm"
-        open={isModalOpen}
-        onCancel={handleCancel}
-        footer={null}
+
+      <DrawerComponent
+        title="Chi tiết người dùng"
+        isOpen={isOpenDrawer}
+        onClose={() => setIsOpenDrawer(false)}
+        height="100vh"
       >
-        <Loading isLoading={isCreate}>
+        <Loading isLoading={isLoadingUpdate}>
           <Form
             name="basic"
-            labelCol={{ span: 6 }}
-            wrapperCol={{ span: 18 }}
-            style={{ maxWidth: 600 }}
-            onFinish={onFinish}
+            labelCol={{ span: 4 }}
+            wrapperCol={{ span: 20 }}
+            style={{ width: "50vw" }}
+            onFinish={onUpdateUser}
             autoComplete="on"
             form={form}
           >
@@ -458,9 +412,9 @@ const AdminProduct = () => {
               name="name"
               rules={[{ required: true, message: "Please input your name!" }]}
             >
-              <InputComponent
-                value={stateUser.name}
-                onChange={handleOnchange}
+              <Input
+                value={stateUserDetails.name}
+                onChange={handleOnchangeDetails}
                 name="name"
               />
             </Form.Item>
@@ -470,38 +424,37 @@ const AdminProduct = () => {
               name="email"
               rules={[{ required: true, message: "Please input your email!" }]}
             >
-              <InputComponent
-                value={stateUser.email}
-                onChange={handleOnchange}
+              <Input
+                value={stateUserDetails.email}
+                onChange={handleOnchangeDetails}
                 name="email"
               />
             </Form.Item>
             <Form.Item
               label="Phone"
               name="phone"
-              rules={[
-                { required: true, message: "Please input your phone!" },
-              ]}
+              rules={[{ required: true, message: "Please input your phone!" }]}
             >
-              <InputComponent
-                value={stateUser.phone}
-                onChange={handleOnchange}
+              <Input
+                value={stateUserDetails.countInStock}
+                onChange={handleOnchangeDetails}
                 name="phone"
               />
             </Form.Item>
-            
-            
-            
+
             {/* <Form.Item
               label="Image"
               name="image"
               rules={[{ required: true, message: "Please input your image!" }]}
             >
-              <WrapperUploadFile onChange={handleOnchangeImage} maxCount={1}>
+              <WrapperUploadFile
+                onChange={handleOnchangeImageDetails}
+                maxCount={1}
+              >
                 <Button icon={<UploadOutlined />}>Select File</Button>
-                {stateUser?.image && (
+                {stateProductDetails?.image && (
                   <img
-                    src={stateUser?.image}
+                    src={stateProductDetails?.image}
                     style={{
                       height: "60px",
                       width: "60px",
@@ -517,127 +470,6 @@ const AdminProduct = () => {
 
             <Form.Item label={null}>
               <Button type="primary" htmlType="submit">
-                Submit
-              </Button>
-            </Form.Item>
-          </Form>
-        </Loading>
-      </ModalComponent>
-      <DrawerComponent
-        title="Chi tiết sản phẩm"
-        isOpen={isOpenDrawer}
-        onClose={() => setIsOpenDrawer(false)}
-        height="100vh"
-      >
-        <Loading isLoading={isLoadingUpdate}>
-          <Form
-            name="basic"
-            labelCol={{ span: 4 }}
-            wrapperCol={{ span: 20 }}
-            style={{ width: "50vw" }}
-            onFinish={onUpdateProduct}
-            autoComplete="on"
-            form={form}
-          >
-            <Form.Item
-              label="Name"
-              name="name"
-              rules={[{ required: true, message: "Please input your name!" }]}
-            >
-              <InputComponent
-                value={stateUserDetails.name}
-                onChange={handleOnchangeDetails}
-                name="name"
-              />
-            </Form.Item>
-
-            <Form.Item
-              label="Type"
-              name="type"
-              rules={[{ required: true, message: "Please input your type!" }]}
-            >
-              <InputComponent
-                value={stateUserDetails.type}
-                onChange={handleOnchangeDetails}
-                name="type"
-              />
-            </Form.Item>
-            <Form.Item
-              label="Count InStock"
-              name="countInStock"
-              rules={[
-                { required: true, message: "Please input your count inStock!" },
-              ]}
-            >
-              <InputComponent
-                value={stateUserDetails.countInStock}
-                onChange={handleOnchangeDetails}
-                name="countInStock"
-              />
-            </Form.Item>
-            <Form.Item
-              label="Price"
-              name="price"
-              rules={[{ required: true, message: "Please input your price!" }]}
-            >
-              <InputComponent
-                value={stateUserDetails.price}
-                onChange={handleOnchangeDetails}
-                name="price"
-              />
-            </Form.Item>
-            <Form.Item
-              label="Rating"
-              name="rating"
-              rules={[{ required: true, message: "Please input your rating!" }]}
-            >
-              <InputComponent
-                value={stateUserDetails.rating}
-                onChange={handleOnchangeDetails}
-                name="rating"
-              />
-            </Form.Item>
-            <Form.Item
-              label="Description"
-              name="description"
-              rules={[
-                { required: true, message: "Please input your description!" },
-              ]}
-            >
-              <InputComponent
-                value={stateUserDetails.description}
-                onChange={handleOnchangeDetails}
-                name="description"
-              />
-            </Form.Item>
-            <Form.Item
-              label="Image"
-              name="image"
-              rules={[{ required: true, message: "Please input your image!" }]}
-            >
-              <WrapperUploadFile
-                onChange={handleOnchangeImageDetails}
-                maxCount={1}
-              >
-                <Button icon={<UploadOutlined />}>Select File</Button>
-                {stateUserDetails?.image && (
-                  <img
-                    src={stateUserDetails?.image}
-                    style={{
-                      height: "60px",
-                      width: "60px",
-                      borderRadius: "50%",
-                      objectFit: "cover",
-                      marginLeft: "50px",
-                    }}
-                    alt="img"
-                  />
-                )}
-              </WrapperUploadFile>
-            </Form.Item>
-
-            <Form.Item label={null}>
-              <Button type="primary" htmlType="submit">
                 Cập nhật
               </Button>
             </Form.Item>
@@ -645,15 +477,15 @@ const AdminProduct = () => {
         </Loading>
       </DrawerComponent>
       <ModalComponent
-        title="Xóa sản phẩm"
+        forceRender
+        title="Xóa tài khoản"
         open={isModalOpenDelete}
         onCancel={handleCancelDelete}
-        onOk={handleDeleteProduct}
+        onOk={handleDeleteUser}
       >
-        <div>Bạn có chắc chắn xóa sản phẩm này không!</div>
+        <div>Bạn có chắc chắn xóa tài khoản này không!</div>
       </ModalComponent>
     </div>
   );
 };
-
-export default AdminProduct;
+export default AdminUser;
