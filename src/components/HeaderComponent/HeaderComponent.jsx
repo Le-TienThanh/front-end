@@ -1,6 +1,6 @@
 import { Row, Col, Badge, Popover, Button } from "antd";
 
-import react, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   WrapperHeader,
   TextWrapperHeader,
@@ -22,11 +22,13 @@ import { Content } from "antd/es/layout/layout";
 import * as UserService from "../../services/UserService";
 import { resetUser } from "../../redux/slides/userSlide";
 import Loading from "../LoadingComponent/Loading";
+import { searchProduct } from "../../redux/slides/productSlide";
 
 const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
   const navigate = useNavigate();
   const user = useSelector((state) => state.user);
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
   const handleNavigateLogin = () => {
     navigate("/sign-in");
   };
@@ -38,7 +40,7 @@ const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
   const [userAvatar, setUserAvatar] = useState("");
   const handleLogout = async () => {
     setLoading(true);
-    await UserService.loginUser();
+    await UserService.logoutUser();
     dispatch(resetUser());
     setLoading(false);
   };
@@ -64,7 +66,11 @@ const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
       </WrapperContentPopup>
     </div>
   );
-  const onSearch = (e) => {};
+  const onSearch = (e) => {
+    setSearch(e.target.value);
+    dispatch(searchProduct(e.target.value));
+    
+  };
 
   return (
     <div>

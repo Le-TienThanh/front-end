@@ -24,6 +24,7 @@ export const WrapperButtonMore = styled.button`
     color: #fff;
     
   }
+    cursor: ${(props) => (props.disabled ? "not-allowed" : "pointers")};
   
     
 

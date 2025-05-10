@@ -1,4 +1,4 @@
-import react from "react";
+import React from "react";
 import TypeProduct from "../../components/TypeProduct/TypeProduct";
 import Item from "antd/es/list/Item";
 import { WrapperTypeProduct, WrapperButtonMore, WrappeProducts } from "./style";
@@ -15,23 +15,41 @@ import ButtonComponent from "../../components/ButtonComponent/ButtonComponent";
 import { useQueries } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import * as ProductService from "../../services/ProductService";
+import { useSelector } from "react-redux";
+import { useRef } from "react";
+import { useEffect } from "react";
+import { useState } from "react";
+import Loading from "../../components/LoadingComponent/Loading";
+import { useDebounce } from "../../hooks/useDebounce";
 
 const Homepage = () => {
+  const searchProduct = useSelector((state) => state?.product?.search);
+  const [loading, setLoading] = useState(false);
+  const [limit, setLimit] = useState(6);
+  const searchDebounce = useDebounce(searchProduct, 1000);
   const arr = ["TV", "Tủ lạnh", "Laptop", "Ipad"];
-  const fetchProductAll = async () => {
-    const res = await ProductService.getAllProduct();
-    return res;
+  const fetchProductAll = async (context) => {
+    
+    const limit = context?.queryKey && context?.queryKey[1];
+    const search = context?.queryKey && context?.queryKey[2];
+    const response = await ProductService.getAllProduct(search, limit);
+   
+    return response;
+    
+    
   };
-  const { isLoading, data: products } = useQuery({
-    queryKey: ["product"],
+  
+  
+  const { isLoading, data: products, isPreviousData } = useQuery({
+    queryKey: ["product", limit, searchDebounce],
     queryFn: fetchProductAll,
     retry: 3,
     retryDelay: 1000,
+    keepPreviousData: true,
   });
-  console.log("data", products);
-
+  
   return (
-    <>
+    <Loading isLoading={isLoading || loading}>
       <div style={{ padding: "0 120px" }}>
         <WrapperTypeProduct>
           {arr.map((item) => {
@@ -75,11 +93,21 @@ const Homepage = () => {
               marginTop: "10px",
             }}
           >
-            <WrapperButtonMore>Xem thêm</WrapperButtonMore>
+            <WrapperButtonMore
+            
+            styleButton={{color: `${products?.total === products?.data?.length ? "rgb(11, 116, 229)" : "#ccc"}`}}
+            disabled={products?.total === products?.data?.length || products?.totalPage === 1}
+              styleTextButton={{
+                color: `${products?.total === products?.data?.length && "#fff"}`,
+              }}
+              onClick={() => setLimit((prev) => prev + 6)}
+            
+            >Xem thêm</WrapperButtonMore>
+            
           </div>
         </div>
       </div>
-    </>
+    </Loading>
   );
 };
 
