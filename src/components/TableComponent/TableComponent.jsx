@@ -1,16 +1,23 @@
 import { Divider, Dropdown, Radio, Space, Table } from "antd";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Loading from "../LoadingComponent/Loading";
 import { DownOutlined } from "@ant-design/icons";
+import { DownloadTableExcel } from "react-export-table-to-excel";
+import { Excel } from "antd-table-saveas-excel";
+
 const TableComponent = (props) => {
   const {
     selectionType = "checkbox",
     data = [],
     isLoading = false,
     columns = [],
-    handleDeleteMany
+    handleDeleteMany,
   } = props;
   const [rowSelectedKeys, setRowSelectedKeys] = useState([]);
+  const newColumnExport = useMemo(() => {
+    const arr = columns?.filter((col) => col.dataIndex !== "action");
+    return arr;
+  }, [columns]);
   const rowSelection = {
     onChange: (selectedRowKeys, selectedRows) => {
       setRowSelectedKeys(selectedRowKeys);
@@ -22,6 +29,16 @@ const TableComponent = (props) => {
   };
   const handleDeleteAll = () => {
     handleDeleteMany(rowSelectedKeys);
+  };
+  const exportExcel = () => {
+    const excel = new Excel();
+    excel
+      .addSheet("test")
+      .addColumns(newColumnExport)
+      .addDataSource(data, {
+        str2Percent: true,
+      })
+      .saveAs("Excel.xlsx");
   };
 
   return (
@@ -41,8 +58,10 @@ const TableComponent = (props) => {
           Xóa tất cả
         </div>
       )}
+      <button onClick={exportExcel}>Export Excel</button>
 
       <Table
+        id="table-xls"
         rowSelection={Object.assign({ type: selectionType }, rowSelection)}
         columns={columns}
         dataSource={data}

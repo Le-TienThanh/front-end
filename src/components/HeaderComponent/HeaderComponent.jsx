@@ -64,6 +64,7 @@ const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
       </WrapperContentPopup>
     </div>
   );
+  const onSearch = (e) => {};
 
   return (
     <div>
@@ -85,6 +86,7 @@ const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
               placeholder="Tìm kiếm"
               size="large"
               textButton="Tìm kiếm"
+              onChange = {onSearch}
             />
           </Col>
         )}

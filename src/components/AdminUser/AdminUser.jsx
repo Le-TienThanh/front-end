@@ -33,18 +33,14 @@ const AdminUser = () => {
   const [filteredInfo, setFilteredInfo] = useState({});
   const [sortedInfo, setSortedInfo] = useState({});
 
-  const [stateUser, setStateUser] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    isAdmin: false,
-  });
-
+  
   const [stateUserDetails, setStateUserDetails] = useState({
     name: "",
     email: "",
     phone: "",
     isAdmin: false,
+    avatar: "",
+    address: "",
   });
 
   const [form] = Form.useForm();
@@ -131,6 +127,8 @@ const AdminUser = () => {
         email: res?.data?.email,
         phone: res?.data?.phone,
         isAdmin: res?.data?.isAdmin,
+        address: res?.data?.address,
+        avatar: res?.data?.avatar,
       });
     }
     setIsLoadingUpdate(false);
@@ -151,17 +149,12 @@ const AdminUser = () => {
     );
   };
 
-  const handleOnchangeImage = async ({ fileList }) => {
-    const file = fileList[0];
-    if (!file.url && !file.preview) {
-      file.preview = await getBase64(file.originFileObj);
+  
+  const handleDetailsUser = () => {
+    if(rowSelected){
+      fetchGetDetailsUser();
+      
     }
-    setStateUser({
-      ...stateUser,
-      image: file.preview,
-    });
-  };
-  const handleDetailsProduct = () => {
     setIsOpenDrawer(true);
   };
   const handleOnchangeDetails = (e) => {
@@ -177,7 +170,7 @@ const AdminUser = () => {
     }
     setStateUserDetails({
       ...stateUserDetails,
-      image: file.preview,
+    avatar: file.preview,
     });
   };
   const handleCloseDrawer = () => {
@@ -253,7 +246,7 @@ const AdminUser = () => {
         />
         <EditOutlined
           style={{ color: "blue", fontSize: "30px", cursor: "pointer" }}
-          onClick={handleDetailsProduct}
+          onClick={handleDetailsUser}
         />
       </div>
     );
@@ -340,6 +333,13 @@ const AdminUser = () => {
 
       sorter: (a, b) => a.email.length - b.email.length,
       ...getColumnSearchProps("email"),
+    },
+    {
+      title: "Address",
+      dataIndex: "address",
+
+      sorter: (a, b) => a.address.length - b.address.length,
+      ...getColumnSearchProps("address"),
     },
     {
       title: "Admin",
@@ -436,13 +436,24 @@ const AdminUser = () => {
               rules={[{ required: true, message: "Please input your phone!" }]}
             >
               <Input
-                value={stateUserDetails.countInStock}
+                value={stateUserDetails.phone}
                 onChange={handleOnchangeDetails}
                 name="phone"
               />
             </Form.Item>
+            <Form.Item
+              label="Address"
+              name="address"
+              rules={[{ required: true, message: "Please input your address!" }]}
+            >
+              <Input
+                value={stateUserDetails.address}
+                onChange={handleOnchangeDetails}
+                name="address"
+              />
+            </Form.Item>
 
-            {/* <Form.Item
+            <Form.Item
               label="Image"
               name="image"
               rules={[{ required: true, message: "Please input your image!" }]}
@@ -452,9 +463,9 @@ const AdminUser = () => {
                 maxCount={1}
               >
                 <Button icon={<UploadOutlined />}>Select File</Button>
-                {stateProductDetails?.image && (
+                {stateUserDetails?.avatar && (
                   <img
-                    src={stateProductDetails?.image}
+                    src={stateUserDetails?.avatar}
                     style={{
                       height: "60px",
                       width: "60px",
@@ -466,7 +477,7 @@ const AdminUser = () => {
                   />
                 )}
               </WrapperUploadFile>
-            </Form.Item> */}
+            </Form.Item>
 
             <Form.Item label={null}>
               <Button type="primary" htmlType="submit">
