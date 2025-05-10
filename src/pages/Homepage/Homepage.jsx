@@ -81,6 +81,7 @@ const Homepage = () => {
                   type = {product.type}
                   sold = {product.sold}
                   discount = {product.discount}
+                  id={product._id}
                 />
               );
             })}
