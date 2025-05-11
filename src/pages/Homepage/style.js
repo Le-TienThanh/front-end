@@ -30,7 +30,7 @@ export const WrapperButtonMore = styled.button`
 
 
 `;
-export const WrappeProducts = styled.div`
+export const WrapperProducts = styled.div`
   display: flex;
   
   gap: 15px;

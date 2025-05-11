@@ -1,7 +1,7 @@
 import React from "react";
 import TypeProduct from "../../components/TypeProduct/TypeProduct";
 import Item from "antd/es/list/Item";
-import { WrapperTypeProduct, WrapperButtonMore, WrappeProducts } from "./style";
+import { WrapperTypeProduct, WrapperButtonMore, WrappeProducts, WrapperProducts } from "./style";
 import { Button } from "antd";
 
 import SliderComponent from "../../components/SliderComponent/SliderComponent";
@@ -67,7 +67,7 @@ const Homepage = () => {
           }}
         >
           <SliderComponent arrImages={[slider1, slider2, slider3, slider4]} />
-          <WrappeProducts>
+          <WrapperProducts>
             {products?.data?.map((product) => {
               return (
                 <CardComponent
@@ -81,10 +81,11 @@ const Homepage = () => {
                   type = {product.type}
                   sold = {product.sold}
                   discount = {product.discount}
+                  id={product._id}
                 />
               );
             })}
-          </WrappeProducts>
+          </WrapperProducts>
           <div
             style={{
               width: "100%",
