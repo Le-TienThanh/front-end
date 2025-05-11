@@ -1,6 +1,5 @@
 import { Col, Row, Image, InputNumber, Button, Rate } from "antd";
 import React from "react";
-import imageProduct from "../../assets/img/test.webp";
 import imageProductSmall from "../../assets/img/imgsmall.webp";
 import {
   WrapperStyleImageSmall,
@@ -64,7 +63,7 @@ const ProductDetailsComponent = ({ idProduct }) => {
           style={{ borderRight: "1px solid #ccc", paddingRight: "8px" }}
         >
           <Image
-            src={productDetails.image}
+            src={productDetails?.image}
             alt="image product"
             preview={false}
           />
