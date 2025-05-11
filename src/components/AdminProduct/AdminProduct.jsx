@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { WrapperHeader } from "./style";
-import { Button, Space } from "antd";
+import { Button, Select, Space } from "antd";
 import {
   PlusCircleFilled,
   PlusOutlined,
@@ -14,7 +14,7 @@ import {
 } from "@ant-design/icons";
 import TableComponent from "../TableComponent/TableComponent";
 import { WrapperUploadFile } from "../../pages/Profile/style";
-import { getBase64 } from "../../utils";
+import { getBase64, renderOptions } from "../../utils";
 import { createProduct } from "../../services/ProductService";
 import * as ProductService from "../../services/ProductService";
 import { useMutationHooks } from "../../hooks/useMutationHook";
@@ -38,6 +38,7 @@ const AdminProduct = () => {
   const searchInput = useRef(null);
   const [filteredInfo, setFilteredInfo] = useState({});
   const [sortedInfo, setSortedInfo] = useState({});
+  const [typeSelect, setTypeSelect] = useState("");
 
   const [stateProduct, setStateProduct] = useState({
     name: "",
@@ -47,6 +48,7 @@ const AdminProduct = () => {
     image: "",
     type: "",
     countInStock: "",
+    newType: "",
   });
 
   const [stateProductDetails, setStateProductDetails] = useState({
@@ -87,7 +89,7 @@ const AdminProduct = () => {
     return res;
   });
   const mutationDeletedMany = useMutationHooks((data) => {
-    const {  token, ...ids } = data;
+    const { token, ...ids } = data;
     const res = ProductService.deleteManyProduct(ids, token);
     return res;
   });
@@ -111,10 +113,6 @@ const AdminProduct = () => {
     isError: isErrorDeletedMany,
   } = mutationDeletedMany;
 
-
-
-
-
   useEffect(() => {
     if (isSuccess && data?.status === "OK") {
       messageProduct.success("Thành công");
@@ -126,7 +124,6 @@ const AdminProduct = () => {
   useEffect(() => {
     if (isSuccessDeletedMany && dataDeletedMany?.status === "OK") {
       messageProduct.success("Thành công");
-      
     } else if (isErrorDeletedMany) {
       messageProduct.error("Đã xảy ra lỗi");
     }
@@ -210,7 +207,7 @@ const AdminProduct = () => {
       ...stateProduct,
       [e.target.name]: e.target.value,
     });
-    console.log("e.target.name", e.target.name, e.target.value);
+    
   };
   const handleOnchangeImage = async ({ fileList }) => {
     const file = fileList[0];
@@ -274,31 +271,67 @@ const AdminProduct = () => {
       {
         onSettled: () => {
           queryProduct.refetch();
-
-        }
+        },
       }
     );
   };
+  const handleChangeSelect = (value) => {
+    setStateProduct({
+      ...stateProduct,
+      type: value,
+    });
+  };
 
+  const fetchAllTypeProduct = async () => {
+    const response = await ProductService.getAllTypeProduct();
+    return response;
+  };
+
+  // const onFinish = () => {
+  //   setIsCreate(true); // bật loading
+
+  //   mutation.mutate(stateProduct, {
+  //     onSuccess: (data) => {
+  //       messageProduct.success("Thêm sản phẩm thành công!");
+  //       // thực hiện hành động khác nếu cần
+  //     },
+  //     onError: (error) => {
+  //       messageProduct.error("Đã xảy ra lỗi khi thêm sản phẩm!");
+  //       console.error(error);
+  //     },
+  //     onSettled: () => {
+  //       queryProduct.refetch();
+  //     },
+  //   });
+
+  // };
   const onFinish = () => {
-    setIsCreate(true); // bật loading
+    setIsCreate(true); 
+    const params = {
+      name: stateProduct.name,
+      price: stateProduct.price,
+      description: stateProduct.description,
+      rating: stateProduct.rating,
+      image: stateProduct.image,
+      type: stateProduct.type === "add_type" ? stateProduct.newType : stateProduct.type,
+      countInStock: stateProduct.countInStock,
+      
+      
 
-    mutation.mutate(stateProduct, {
-      onSuccess: (data) => {
-        messageProduct.success("Thêm sản phẩm thành công!");
-        // thực hiện hành động khác nếu cần
-      },
-      onError: (error) => {
-        messageProduct.error("Đã xảy ra lỗi khi thêm sản phẩm!");
-        console.error(error);
-      },
+    }
+    mutation.mutate(params, {
+      // onSuccess: (data) => {
+      //   messageProduct.success("Thêm sản phẩm thành công!");
+      // },
+      // onError: (error) => {
+      //   messageProduct.error("Đã xảy ra lỗi khi thêm sản phẩm!");
+      //   console.error(error);
+      // },
       onSettled: () => {
         queryProduct.refetch();
       },
     });
-
-    console.log("finish", stateProduct);
-  };
+  }
   const onUpdateProduct = () => {
     mutationUpdate.mutate(
       {
@@ -322,6 +355,11 @@ const AdminProduct = () => {
     queryKey: ["products"],
     queryFn: getAllProducts,
   });
+  const typeProduct = useQuery({
+    queryKey: ["type-products"],
+    queryFn: fetchAllTypeProduct,
+  });
+  console.log("stateProduct", stateProduct);
   const { isLoading: isLoadingProducts, data: products } = queryProduct;
   const renderAction = () => {
     return (
@@ -397,17 +435,6 @@ const AdminProduct = () => {
         }
       },
     },
-    // render: text =>
-    //   searchedColumn === dataIndex ? (
-    //     <Highlighter
-    //       highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
-    //       searchWords={[searchText]}
-    //       autoEscape
-    //       textToHighlight={text ? text.toString() : ''}
-    //     />
-    //   ) : (
-    //     text
-    //   ),
   });
   const columns = [
     {
@@ -528,12 +555,27 @@ const AdminProduct = () => {
               name="type"
               rules={[{ required: true, message: "Please input your type!" }]}
             >
-              <Input
-                value={stateProduct.type}
-                onChange={handleOnchange}
+              <Select
                 name="type"
+                value={stateProduct.type}
+                onChange={handleChangeSelect}
+                options={renderOptions(typeProduct?.data?.data)}
               />
             </Form.Item>
+            {stateProduct.type === "add_type" && (
+              <Form.Item
+                label="New type"
+                name="newType"
+                rules={[{ required: true, message: "Please input your type!" }]}
+              >
+                <Input
+                  value={stateProduct.newType}
+                  onChange={handleOnchange}
+                  name="newType"
+                />
+              </Form.Item>
+            )}
+
             <Form.Item
               label="Count InStock"
               name="countInStock"

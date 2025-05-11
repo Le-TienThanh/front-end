@@ -1,7 +1,12 @@
 import React from "react";
 import TypeProduct from "../../components/TypeProduct/TypeProduct";
 import Item from "antd/es/list/Item";
-import { WrapperTypeProduct, WrapperButtonMore, WrappeProducts, WrapperProducts } from "./style";
+import {
+  WrapperTypeProduct,
+  WrapperButtonMore,
+  WrappeProducts,
+  WrapperProducts,
+} from "./style";
 import { Button } from "antd";
 
 import SliderComponent from "../../components/SliderComponent/SliderComponent";
@@ -27,32 +32,42 @@ const Homepage = () => {
   const [loading, setLoading] = useState(false);
   const [limit, setLimit] = useState(6);
   const searchDebounce = useDebounce(searchProduct, 1000);
-  const arr = ["TV", "Tủ lạnh", "Laptop", "Ipad"];
+  const [typeProducts, setTypeProducts] = useState([]);
+
   const fetchProductAll = async (context) => {
-    
     const limit = context?.queryKey && context?.queryKey[1];
     const search = context?.queryKey && context?.queryKey[2];
     const response = await ProductService.getAllProduct(search, limit);
-   
+
     return response;
-    
-    
   };
-  
-  
-  const { isLoading, data: products, isPreviousData } = useQuery({
+  const fetchAllTypeProduct = async () => {
+    const response = await ProductService.getAllTypeProduct();
+    if (response?.status === "OK") {
+      setTypeProducts(response?.data);
+    }
+  };
+  useEffect(() => {
+    fetchAllTypeProduct();
+  }, []);
+
+  const {
+    isLoading,
+    data: products,
+    isPreviousData,
+  } = useQuery({
     queryKey: ["product", limit, searchDebounce],
     queryFn: fetchProductAll,
     retry: 3,
     retryDelay: 1000,
     keepPreviousData: true,
   });
-  
+
   return (
     <Loading isLoading={isLoading || loading}>
       <div style={{ padding: "0 120px" }}>
         <WrapperTypeProduct>
-          {arr.map((item) => {
+          {typeProducts.map((item) => {
             return <TypeProduct name={item} key={item} />;
           })}
         </WrapperTypeProduct>
@@ -77,10 +92,10 @@ const Homepage = () => {
                   image={product.image}
                   name={product.name}
                   price={product.price}
-                  rating = {product.rating}
-                  type = {product.type}
-                  sold = {product.sold}
-                  discount = {product.discount}
+                  rating={product.rating}
+                  type={product.type}
+                  sold={product.sold}
+                  discount={product.discount}
                   id={product._id}
                 />
               );
@@ -95,16 +110,26 @@ const Homepage = () => {
             }}
           >
             <WrapperButtonMore
-            
-            styleButton={{color: `${products?.total === products?.data?.length ? "rgb(11, 116, 229)" : "#ccc"}`}}
-            disabled={products?.total === products?.data?.length || products?.totalPage === 1}
+              styleButton={{
+                color: `${
+                  products?.total === products?.data?.length
+                    ? "rgb(11, 116, 229)"
+                    : "#ccc"
+                }`,
+              }}
+              disabled={
+                products?.total === products?.data?.length ||
+                products?.totalPage === 1
+              }
               styleTextButton={{
-                color: `${products?.total === products?.data?.length && "#fff"}`,
+                color: `${
+                  products?.total === products?.data?.length && "#fff"
+                }`,
               }}
               onClick={() => setLimit((prev) => prev + 6)}
-            
-            >Xem thêm</WrapperButtonMore>
-            
+            >
+              Xem thêm
+            </WrapperButtonMore>
           </div>
         </div>
       </div>
