@@ -8,7 +8,7 @@ import InputForm from "../../components/InputForm/InputForm";
 import { Button, Image, message } from "antd";
 import imageLogo from "../../assets/img/logo-login.png";
 import { EyeFilled, EyeInvisibleFilled } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import ButtonComponent from "../../components/ButtonComponent/ButtonComponent";
 import * as UserService from "../../services/UserService";
 import { useMutationHooks } from "../../hooks/useMutationHook";
@@ -23,6 +23,7 @@ const SignInPage = () => {
   const [password, setPassword] = useState("");
   const [isSigningIn, setIsSigningIn] = useState(false);
   const dispatch = useDispatch();
+  const location = useLocation();
 
   const navigate = useNavigate();
   const handleOnChangeEmail = (value) => {
@@ -36,7 +37,12 @@ const SignInPage = () => {
   const { data, isLoading, isSuccess, isError } = mutation;
   useEffect(() => {
     if(isSuccess){
-      navigate("/");
+      if(location?.state){
+        navigate(location?.state);
+      } else{
+        navigate("/");
+      }
+      
       localStorage.setItem("access_token", JSON.stringify(data?.access_token));
       if(data?.access_token){
         const decoded = jwtDecode(data?.access_token);

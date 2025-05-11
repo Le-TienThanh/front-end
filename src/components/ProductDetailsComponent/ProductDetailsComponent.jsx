@@ -20,13 +20,18 @@ import * as ProductService from "../../services/ProductService";
 import { useQuery } from "@tanstack/react-query";
 import Loading from "../LoadingComponent/Loading";
 import { useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
+import { addOrderProduct } from "../../redux/slides/orderSlide";
 const ProductDetailsComponent = ({ idProduct }) => {
   const [numProduct, setNumProduct] = useState(1);
   const user = useSelector((state) => state.user);
+  const location = useLocation();
+  const dispatch = useDispatch();
   const onChange = (value) => {
     setNumProduct(Number(value));
   };
+  const navigate = useNavigate();
   const handleChangeCount = (type) => {
     if (type === "increase") {
       setNumProduct((prev) => (prev || 0) + 1);
@@ -34,6 +39,22 @@ const ProductDetailsComponent = ({ idProduct }) => {
       setNumProduct((prev) => Math.max((prev || 1) - 1, 1)); // Không để nhỏ hơn 1
     }
   };
+  const handleAddOrderProduct = () => {
+    if(!user?.id){
+      navigate("/sign-in", { state: location.pathname });
+    } else {
+      dispatch(addOrderProduct({
+        orderItem: {
+          name: productDetails?.name,
+          amount: numProduct,
+          image: productDetails?.image,
+          price: productDetails?.price,
+          product: productDetails?._id,
+          
+        }
+      }))
+    }
+  } 
 
   const fetchGetDetailsProduct = async (context) => {
     const id = context?.queryKey && context?.queryKey[1];
@@ -163,6 +184,7 @@ const ProductDetailsComponent = ({ idProduct }) => {
                 width: "220px",
                 border: "1px solid",
               }}
+              onClick={handleAddOrderProduct}
             >
               Chọn mua
             </Button>

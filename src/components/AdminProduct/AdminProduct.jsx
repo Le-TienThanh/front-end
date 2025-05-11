@@ -283,7 +283,7 @@ const AdminProduct = () => {
   };
 
   const fetchAllTypeProduct = async () => {
-    const response = await ProductService.getAllTypeProduct();
+    const response = await ProductService.getAllTypeProduct("", 100);
     return response;
   };
 
