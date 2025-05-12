@@ -3,6 +3,7 @@ import { shallowEqual } from "react-redux";
 
 const initialState = {
   orderItems: [],
+  orderItemsSelected: [],
   shippingAddress: {},
   paymentMethod: "",
   itemsPrice: 0,
@@ -12,22 +13,40 @@ const initialState = {
   user: "",
   isPaid: false,
   paidAt: "",
-  isDelvered: false,
+  isDelivered: false,
   deliveredAt: "",
 };
 
-export const orderSlice = createSlice({
+export const orderSlide = createSlice({
   name: "order",
   initialState,
   reducers: {
+    // addOrderProduct: (state, action) => {
+    //   const { orderItem } = action.payload;
+    //   const itemOrder = state?.orderItems?.find(
+    //     (item) => item?.product === orderItem.product
+    //   );
+    //   if (itemOrder) {
+    //     itemOrder.amount += orderItem?.amount;
+    //   } else {
+    //     state.orderItems.push(orderItem);
+    //   }
+    // },
     addOrderProduct: (state, action) => {
       const { orderItem } = action.payload;
-      const itemOrder = state?.orderItems?.find(
+
+      // Đảm bảo orderItems luôn là một mảng
+      if (!state.orderItems) {
+        state.orderItems = [];
+      }
+
+      const itemOrder = state.orderItems.find(
         (item) => item?.product === orderItem.product
       );
-      if(itemOrder) {
+
+      if (itemOrder) {
         itemOrder.amount += orderItem?.amount;
-      } else{
+      } else {
         state.orderItems.push(orderItem);
       }
     },
@@ -36,24 +55,65 @@ export const orderSlice = createSlice({
       const itemOrder = state?.orderItems?.find(
         (item) => item?.product === idProduct
       );
+      const itemOrderSelected = state?.orderItemsSelected?.find(
+        (item) => item?.product === idProduct
+      );
       itemOrder.amount++;
+      if (itemOrderSelected) {
+        itemOrderSelected.amount++;
+      }
     },
     decreaseAmount: (state, action) => {
       const { idProduct } = action.payload;
       const itemOrder = state?.orderItems?.find(
         (item) => item?.product === idProduct
       );
-      itemOrder.amount++;
+      const itemOrderSelected = state?.orderItemsSelected?.find(
+        (item) => item?.product === idProduct
+      );
+      itemOrder.amount--;
+      if (itemOrderSelected) {
+        itemOrderSelected.amount--;
+      }
     },
     removeOrderProduct: (state, action) => {
       const { idProduct } = action.payload;
-      const itemOrder = state?.orderItems?.find(
+      const itemOrder = state?.orderItems?.filter(
         (item) => item?.product !== idProduct
       );
-      itemOrder.orderItems = itemOrder
+      state.orderItems = itemOrder;
+    },
+    removeAllOrderProduct: (state, action) => {
+      const { listChecked } = action.payload;
+      const itemOrders = state?.orderItems?.filter(
+        (item) => !listChecked.includes(item?.product)
+      );
+      const itemOrdersSelected = state?.orderItems?.filter(
+        (item) => !listChecked.includes(item?.product)
+      );
+
+      state.orderItems = itemOrders;
+      state.orderItemsSelected = itemOrdersSelected;
+    },
+    selectedOrder: (state, action) => {
+      const { listChecked } = action.payload;
+      const orderSelected = [];
+      state?.orderItems?.forEach((order) => {
+        if (listChecked.includes(order.product)) {
+          orderSelected.push(order);
+        }
+      });
+      state.orderItemsSelected = orderSelected;
     },
   },
 });
 
-export const { addOrderProduct } = orderSlice.actions;
-export default orderSlice.reducer;
+export const {
+  addOrderProduct,
+  increaseAmount,
+  decreaseAmount,
+  removeAllOrderProduct,
+  removeOrderProduct,
+  selectedOrder,
+} = orderSlide.actions;
+export default orderSlide.reducer;

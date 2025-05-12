@@ -14,8 +14,7 @@ import {
   WrapperBtnQualityProduct,
 } from "./style";
 import { MinusOutlined, PlusOutlined, StarFilled } from "@ant-design/icons";
-import ButtonComponent from "../ButtonComponent/ButtonComponent";
-import { Color } from "antd/es/color-picker";
+
 import * as ProductService from "../../services/ProductService";
 import { useQuery } from "@tanstack/react-query";
 import Loading from "../LoadingComponent/Loading";
@@ -23,8 +22,11 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { addOrderProduct } from "../../redux/slides/orderSlide";
+import { convertPrice } from "../../utils";
+
 const ProductDetailsComponent = ({ idProduct }) => {
   const [numProduct, setNumProduct] = useState(1);
+  
   const user = useSelector((state) => state.user);
   const location = useLocation();
   const dispatch = useDispatch();
@@ -143,7 +145,7 @@ const ProductDetailsComponent = ({ idProduct }) => {
           </div>
           <WrapperPriceProduct>
             <WrapperPriceTextProduct>
-              {productDetails?.price}
+              {convertPrice(productDetails?.price)}
             </WrapperPriceTextProduct>
           </WrapperPriceProduct>
           <WrapperAddressProduct>
@@ -202,6 +204,7 @@ const ProductDetailsComponent = ({ idProduct }) => {
           </div>
         </Col>
       </Row>
+      
     </Loading>
   );
 };

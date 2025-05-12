@@ -49,6 +49,7 @@ const AdminProduct = () => {
     type: "",
     countInStock: "",
     newType: "",
+    discount: "",
   });
 
   const [stateProductDetails, setStateProductDetails] = useState({
@@ -59,11 +60,12 @@ const AdminProduct = () => {
     image: "",
     type: "",
     countInStock: "",
+    discount: "",
   });
 
   const [form] = Form.useForm();
   const mutation = useMutationHooks((data) => {
-    const { name, price, description, rating, image, type, countInStock } =
+    const { name, price, description, rating, image, type, countInStock, discount } =
       data;
     const res = ProductService.createProduct({
       name,
@@ -73,6 +75,7 @@ const AdminProduct = () => {
       image,
       type,
       countInStock,
+      discount,
     });
     return res;
   });
@@ -170,6 +173,7 @@ const AdminProduct = () => {
         image: res?.data?.image,
         type: res?.data?.type,
         countInStock: res?.data?.countInStock,
+        discount: res?.data?.discount,
       });
     }
     setIsLoadingUpdate(false);
@@ -185,6 +189,7 @@ const AdminProduct = () => {
       image: "",
       type: "",
       countInStock: "",
+      discount: "",
     });
     form.resetFields();
   };
@@ -207,7 +212,6 @@ const AdminProduct = () => {
       ...stateProduct,
       [e.target.name]: e.target.value,
     });
-    
   };
   const handleOnchangeImage = async ({ fileList }) => {
     const file = fileList[0];
@@ -306,19 +310,20 @@ const AdminProduct = () => {
 
   // };
   const onFinish = () => {
-    setIsCreate(true); 
+    setIsCreate(true);
     const params = {
       name: stateProduct.name,
       price: stateProduct.price,
       description: stateProduct.description,
       rating: stateProduct.rating,
       image: stateProduct.image,
-      type: stateProduct.type === "add_type" ? stateProduct.newType : stateProduct.type,
+      type:
+        stateProduct.type === "add_type"
+          ? stateProduct.newType
+          : stateProduct.type,
       countInStock: stateProduct.countInStock,
-      
-      
-
-    }
+      discount: stateProduct.discount,
+    };
     mutation.mutate(params, {
       // onSuccess: (data) => {
       //   messageProduct.success("Thêm sản phẩm thành công!");
@@ -331,7 +336,7 @@ const AdminProduct = () => {
         queryProduct.refetch();
       },
     });
-  }
+  };
   const onUpdateProduct = () => {
     mutationUpdate.mutate(
       {
@@ -611,6 +616,19 @@ const AdminProduct = () => {
                 name="rating"
               />
             </Form.Item>
+             <Form.Item
+              label="Discount"
+              name="discount"
+              rules={[
+                { required: true, message: "Please input your discount!" },
+              ]}
+            >
+              <Input
+                value={stateProductDetails.discount}
+                onChange={handleOnchangeDetails}
+                name="discount"
+              />
+            </Form.Item>
             <Form.Item
               label="Description"
               name="description"
@@ -727,6 +745,19 @@ const AdminProduct = () => {
                 value={stateProductDetails.rating}
                 onChange={handleOnchangeDetails}
                 name="rating"
+              />
+            </Form.Item>
+            <Form.Item
+              label="Discount"
+              name="discount"
+              rules={[
+                { required: true, message: "Please input your discount!" },
+              ]}
+            >
+              <Input
+                value={stateProductDetails.discount}
+                onChange={handleOnchangeDetails}
+                name="discount"
               />
             </Form.Item>
             <Form.Item
