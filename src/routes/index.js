@@ -8,6 +8,7 @@ import SignUpPage from "../pages/SignUpPage/SignUpPage";
 import ProductDetailsPage from "../pages/ProductDetailsPage/ProductDetailsPage";
 import ProfilePage from "../pages/Profile/ProfilePage";
 import AdminPage from "../pages/AdminPage/AdminPage";
+import PaymentPage from "../pages/OrderPage/OrderPage";
 
 
 export const routes = [
@@ -38,6 +39,12 @@ export const routes = [
         path: "/sign-in",
         page: SignInPage,
         isShowHeader: false
+        
+    },
+    {
+        path: "/payment",
+        page: PaymentPage,
+        isShowHeader: true
         
     },
     {

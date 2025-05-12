@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   decreaseAmount,
@@ -33,14 +33,13 @@ import { useMutationHooks } from "../../hooks/useMutationHook";
 import Loading from "../../components/LoadingComponent/Loading";
 import * as message from "../../components/Message/Message"
 import { updateUser } from "../../redux/slides/userSlide";
-const PaymentPage = () => {
+const OrderPage = () => {
   const order = useSelector((state) => state.order);
   const user = useSelector((state) => state.user);
   const [listChecked, setListChecked] = useState([]);
   const [isOpenModalUpdateInfo, setIsOpenModalUpdateInfo] = useState(false);
   const dispatch = useDispatch();
   const [form] = Form.useForm();
-  const navigate = useNavigate();
   const [stateUserDetails, setStateUserDetails] = useState({
     name: "",
 
@@ -165,8 +164,6 @@ const PaymentPage = () => {
 
     } else if(!user?.phone || !user?.address || !user?.name || !user?.city){
       setIsOpenModalUpdateInfo(true);
-    } else{
-      navigate("/payment")
     }
     
   };
@@ -195,6 +192,7 @@ const PaymentPage = () => {
       });
     }
   };
+  console.log("data", data)
 
   return (
     <div style={{ background: "#ccc", width: "100%", height: "100vh" }}>
@@ -515,4 +513,4 @@ const PaymentPage = () => {
     </div>
   );
 };
-export default PaymentPage;
+export default OrderPage;
