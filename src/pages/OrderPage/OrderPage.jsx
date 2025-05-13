@@ -33,7 +33,7 @@ import { useMutationHooks } from "../../hooks/useMutationHook";
 import Loading from "../../components/LoadingComponent/Loading";
 import * as message from "../../components/Message/Message"
 import { updateUser } from "../../redux/slides/userSlide";
-const PaymentPage = () => {
+const OrderPage = () => {
   const order = useSelector((state) => state.order);
   const user = useSelector((state) => state.user);
   const [listChecked, setListChecked] = useState([]);
@@ -119,12 +119,12 @@ const PaymentPage = () => {
     }
   }, [isOpenModalUpdateInfo])
   useEffect(() => {
-    form.setFieldValue(stateUserDetails)
+    form.setFieldsValue(stateUserDetails)
   }, [form, stateUserDetails])
 
   const priceMemo = useMemo(() => {
     const result = order?.orderItemsSelected?.reduce((total, cur) => {
-      return total + cur.price * cur.amount;
+      return total + (cur.price * cur.amount);
     }, 0);
     if (Number(result)) {
       return result;
@@ -133,7 +133,7 @@ const PaymentPage = () => {
   }, [order]);
   const priceDiscountMemo = useMemo(() => {
     const result = order?.orderItems?.reduce((total, cur) => {
-      return total + cur?.price * cur?.amount;
+      return total + (cur.discount * cur.amount);
     }, 0);
     if (Number(result)) {
       return result;
@@ -151,7 +151,7 @@ const PaymentPage = () => {
   }, [priceMemo]);
   const totalPriceMemo = useMemo(() => {
     return (
-      Number(priceMemo) + Number(priceDiscountMemo) - Number(deliveryPriceMemo)
+      Number(priceMemo) - Number(priceDiscountMemo) + Number(deliveryPriceMemo)
     );
   }, [priceMemo, priceDiscountMemo, deliveryPriceMemo]);
   const handleRemoveAllOrder = () => {
@@ -166,7 +166,7 @@ const PaymentPage = () => {
     } else if(!user?.phone || !user?.address || !user?.name || !user?.city){
       setIsOpenModalUpdateInfo(true);
     } else{
-      navigate("/payment")
+      navigate("/payment");
     }
     
   };
@@ -186,7 +186,7 @@ const PaymentPage = () => {
       mutationUpdate.mutate({
         id: user?.id,
         token: user?.access_token,
-        stateUserDetails,
+        ...stateUserDetails,
       }, {
         onSuccess: () => {
           dispatch(updateUser({name, address, city, phone}))
@@ -515,4 +515,4 @@ const PaymentPage = () => {
     </div>
   );
 };
-export default PaymentPage;
+export default OrderPage;

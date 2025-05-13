@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   decreaseAmount,
@@ -7,13 +7,15 @@ import {
   removeOrderProduct,
   selectedOrder,
 } from "../../redux/slides/orderSlide";
-import { Button, Input, Form } from "antd";
+import { Button, Input, Form, Radio } from "antd";
 import {
+  Label,
   WrapperCountOrder,
   WrapperInfo,
   WrapperItemOrder,
   WrapperLeft,
   WrapperListOrder,
+  WrapperRadio,
   WrapperRight,
   WrapperStyleHeader,
   WrapperTotal,
@@ -31,15 +33,19 @@ import * as UserService from "../../services/UserService";
 import ModalComponent from "../../components/ModalComponent/ModalComponent";
 import { useMutationHooks } from "../../hooks/useMutationHook";
 import Loading from "../../components/LoadingComponent/Loading";
-import * as message from "../../components/Message/Message"
+import * as message from "../../components/Message/Message";
 import { updateUser } from "../../redux/slides/userSlide";
-const OrderPage = () => {
+import * as OrderService from "../../services/OrderService";
+const PaymentPage = () => {
   const order = useSelector((state) => state.order);
   const user = useSelector((state) => state.user);
   const [listChecked, setListChecked] = useState([]);
+  const [delivery, setDelivery] = useState("fast");
+  const [payment, setPayment] = useState("later_money");
   const [isOpenModalUpdateInfo, setIsOpenModalUpdateInfo] = useState(false);
   const dispatch = useDispatch();
   const [form] = Form.useForm();
+  const navigate = useNavigate();
   const [stateUserDetails, setStateUserDetails] = useState({
     name: "",
 
@@ -52,38 +58,53 @@ const OrderPage = () => {
     const res = UserService.updateUser(id, { ...rests }, token);
     return res;
   });
-  const {isLoading, data} = mutationUpdate;
-  const onChange = (e) => {
-    if (listChecked.includes(e.target.value)) {
-      const newListChecked = listChecked.filter(
-        (item) => item !== e.target.value
-      );
-      setListChecked(newListChecked);
-    } else {
-      setListChecked([...listChecked, e.target.value]);
-    }
-  };
-  const handleChangeCount = (type, idProduct) => {
-    if (type === "increase") {
-      dispatch(increaseAmount({ idProduct }));
-    } else if (type === "decrease") {
-      dispatch(decreaseAmount({ idProduct }));
-    }
-  };
-  const handleDeleteOrder = (idProduct) => {
-    dispatch(removeOrderProduct({ idProduct }));
-  };
-  const handleOnchangeCheckAll = (e) => {
-    if (e.target.checked) {
-      const newListChecked = [];
-      order?.orderItems?.forEach((item) => {
-        newListChecked.push(item?.product);
+  const mutationAddOrder = useMutationHooks((data) => {
+    if (
+      user?.access_token &&
+      order?.orderItemsSelected &&
+      user?.name &&
+      user?.address &&
+      user?.phone &&
+      user?.city &&
+      priceMemo &&
+      user?.id
+    ) {
+      mutationAddOrder.mutate({
+        token: user?.access_token,
+        orderItems: order?.orderItemsSelected,
+        fullName: user?.name,
+        address: user?.address,
+        phone: user?.phone,
+        city: user?.city,
+        paymentMethod: payment,
+        itemsPrice: priceMemo,
+        shippingPrice: deliveryPriceMemo,
+        totalPrice: totalPriceMemo,
+        user: user?.id,
       });
-      setListChecked(newListChecked);
-    } else {
-      setListChecked([]);
+    }
+  });
+  const { isLoading, data } = mutationUpdate;
+  const {
+    isLoading: isLoadingAddOrder,
+    isSuccess,
+    isError,
+    data: dataAdd,
+  } = mutationAddOrder;
+  useEffect(() => {
+    if (isSuccess && dataAdd?.status === "OK") {
+      message.success("Đặt hàng thành công");
+    } else if (isError) {
+      message.error();
+    }
+  }, [isSuccess, isError]);
+
+  const handleRemoveAllOrder = () => {
+    if (listChecked?.length > 1) {
+      dispatch(removeOrderProduct({ listChecked }));
     }
   };
+
   const handleOnchangeDetails = (e) => {
     setStateUserDetails({
       ...stateUserDetails,
@@ -91,35 +112,31 @@ const OrderPage = () => {
     });
   };
   const handleChangeAddress = () => {
-    setIsOpenModalUpdateInfo(true)
-  }
-
-
-
-
-
-
-
-
-
+    setIsOpenModalUpdateInfo(true);
+  };
 
   useEffect(() => {
     dispatch(selectedOrder({ listChecked }));
   }, [listChecked]);
   useEffect(() => {
-    if(isOpenModalUpdateInfo){
+    if (isOpenModalUpdateInfo) {
       setStateUserDetails({
-        
         city: user?.city,
         name: user?.name,
         address: user?.address,
-        phone: user?.phone
-      })
+        phone: user?.phone,
+      });
     }
-  }, [isOpenModalUpdateInfo])
+  }, [isOpenModalUpdateInfo]);
   useEffect(() => {
-    form.setFieldValue(stateUserDetails)
-  }, [form, stateUserDetails])
+    form.setFieldsValue(stateUserDetails);
+  }, [form, stateUserDetails]);
+
+  // const mutationAddOrder = useMutationHooks((data) => {
+  //     const { id, token, ...rests } = data;
+  //     const res = UserService.updateUser(id, { ...rests }, token);
+  //     return res;
+  //   });
 
   const priceMemo = useMemo(() => {
     const result = order?.orderItemsSelected?.reduce((total, cur) => {
@@ -132,7 +149,7 @@ const OrderPage = () => {
   }, [order]);
   const priceDiscountMemo = useMemo(() => {
     const result = order?.orderItems?.reduce((total, cur) => {
-      return total + cur?.price * cur?.amount;
+      return total + cur.discount * cur.amount;
     }, 0);
     if (Number(result)) {
       return result;
@@ -150,304 +167,216 @@ const OrderPage = () => {
   }, [priceMemo]);
   const totalPriceMemo = useMemo(() => {
     return (
-      Number(priceMemo) + Number(priceDiscountMemo) - Number(deliveryPriceMemo)
+      Number(priceMemo) - Number(priceDiscountMemo) + Number(deliveryPriceMemo)
     );
   }, [priceMemo, priceDiscountMemo, deliveryPriceMemo]);
-  const handleRemoveAllOrder = () => {
-    if (listChecked?.length > 1) {
-      dispatch(removeOrderProduct({ listChecked }));
-    }
-  };
-  const handleAddCard = () => {
-    if(!order?.orderItemsSelected?.length){
-      message.error("Vui lòng chọn sản phẩm")
 
-    } else if(!user?.phone || !user?.address || !user?.name || !user?.city){
+  const handleAddOrder = () => {
+    if (!order?.orderItemsSelected?.length) {
+      message.error("Vui lòng chọn sản phẩm");
+    } else if (!user?.phone || !user?.address || !user?.name || !user?.city) {
       setIsOpenModalUpdateInfo(true);
+    } else {
+      navigate("/payment");
     }
-    
   };
   const handleCancelUpdate = () => {
     setStateUserDetails({
       name: "",
       email: "",
       phone: "",
-      isAdmin: false
-    })
+      isAdmin: false,
+    });
     form.resetFields();
     setIsOpenModalUpdateInfo(false);
   };
   const handleUpdateInforUser = () => {
     const { name, address, city, phone } = stateUserDetails;
     if (name && address && city && phone) {
-      mutationUpdate.mutate({
-        id: user?.id,
-        token: user?.access_token,
-        stateUserDetails,
-      }, {
-        onSuccess: () => {
-          dispatch(updateUser({name, address, city, phone}))
-          setIsOpenModalUpdateInfo(false);
+      mutationUpdate.mutate(
+        {
+          id: user?.id,
+          token: user?.access_token,
+          stateUserDetails,
+        },
+        {
+          onSuccess: () => {
+            dispatch(updateUser({ name, address, city, phone }));
+            setIsOpenModalUpdateInfo(false);
+          },
         }
-      });
+      );
     }
   };
-  console.log("data", data)
+  const handleDelivery = (e) => {
+    setDelivery(e.target.value);
+  };
+  const handlePayment = (e) => {
+    setPayment(e.target.value);
+  };
 
   return (
     <div style={{ background: "#ccc", width: "100%", height: "100vh" }}>
-      <div style={{ height: "100%", width: "1270px", margin: "0 auto" }}>
-        <h3 style={{ fontSize: "20px" }}>Giỏ hàng</h3>
-        <div style={{ display: "flex", justifyContent: "center" }}>
-          <WrapperLeft>
-            <WrapperStyleHeader>
-              <span style={{ display: "inline-block", width: "390px" }}>
-                <Checkbox
-                  onChange={handleOnchangeCheckAll}
-                  checked={listChecked?.length === order?.orderItems?.length}
-                ></Checkbox>
-                <span style={{ marginLeft: "10px" }}>
-                  Tất cả ({order?.orderItems?.length} sản phẩm)
-                </span>
-              </span>
-              <div
-                style={{
-                  flex: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <span>Đơn giá</span>
-                <span>Số lượng</span>
-                <span>Thành tiền</span>
-                <DeleteOutlined
-                  style={{ cursor: "pointer" }}
-                  onClick={handleRemoveAllOrder}
-                />
-              </div>
-            </WrapperStyleHeader>
-            <WrapperListOrder>
-              {order?.orderItems?.map((order) => {
-                return (
-                  <WrapperItemOrder>
-                    <div
-                      style={{
-                        width: "390px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 4,
-                      }}
-                    >
-                      <Checkbox
-                        onChange={onChange}
-                        value={order?.product}
-                        checked={listChecked.includes(order?.product)}
-                      ></Checkbox>
-                      <img
-                        src={order?.image}
-                        style={{
-                          width: "77px",
-                          height: "79px",
-                          objectFit: "cover",
-                        }}
-                      />
-                      <div
-                        style={{
-                          width: "260px",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          fontSize: "15px",
-                        }}
-                      >
-                        {order?.name}
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        flex: 1,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <span>
-                        <span
-                          style={{
-                            fontSize: "15px",
-                            color: "rgb(255, 66, 78)",
-                          }}
-                        >
-                          {convertPrice(order?.price)}
-                        </span>
-                      </span>
-                      <WrapperCountOrder>
-                        <button
-                          style={{
-                            border: "none",
-                            background: "transparent",
-                            cursor: "pointer",
-                          }}
-                          onClick={() =>
-                            handleChangeCount("decrease", order?.product)
-                          }
-                        >
-                          <MinusOutlined
-                            style={{ color: "#000", fontSize: "10px" }}
-                          />
-                        </button>
-                        <WrapperInputNumber
-                          onChange={onChange}
-                          defaultValue={order?.amount}
-                          value={order?.amount}
-                          size="small"
-                        />
-                        <button
-                          style={{
-                            border: "none",
-                            background: "transparent",
-                            cursor: "pointer",
-                          }}
-                          onClick={() =>
-                            handleChangeCount("increase", order?.product)
-                          }
-                        >
-                          <PlusOutlined
-                            style={{ color: "#000", fontSize: "10px" }}
-                          />
-                        </button>
-                      </WrapperCountOrder>
-                      <span
-                        style={{
-                          color: "rgb(255, 66, 78)",
-                          fontSize: "15px",
-                          fontWeight: "500",
-                        }}
-                      >
-                        {convertPrice(order?.price * order?.amount)}
-                      </span>
-                      <DeleteOutlined
-                        style={{ cursor: "pointer", fontSize: "20px" }}
-                        onClick={() => handleDeleteOrder(order?.product)}
-                      />
-                    </div>
-                  </WrapperItemOrder>
-                );
-              })}
-            </WrapperListOrder>
-          </WrapperLeft>
-          <WrapperRight>
-            <div style={{ width: "100%" }}>
+      <Loading isLoading={isLoadingAddOrder}>
+        <div style={{ height: "100%", width: "1270px", margin: "0 auto" }}>
+          <h3 style={{ fontSize: "20px" }}>Chọn phương thức thanh toán</h3>
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <WrapperLeft>
               <WrapperInfo>
                 <div>
-                  <span style={{ fontSize: "15px"}}>Địa chỉ giao hàng: </span>
-                  <span style={{fontWeight: "bold"}}> {`${user?.address} ${user?.city}`} </span>
-                  <span style={{color: "blue", cursor: "pointer", fontSize: "12px"}}
-                  onClick={handleChangeAddress}
-                  > Thay đổi </span>
+                  <Label>Chọn phương thức giao hàng</Label>
+                  <WrapperRadio onChange={handleDelivery} value={delivery}>
+                    <Radio value="fast">
+                      <span style={{ color: "#ea8500", fontWeight: "bold" }}>
+                        FAST
+                      </span>
+                      Giao hàng tiết kiệm
+                    </Radio>
+                    <Radio value="gojek">
+                      <span style={{ color: "#ea8500", fontWeight: "bold" }}>
+                        GO_JEK
+                      </span>
+                      Giao hàng tiết kiệm
+                    </Radio>
+                  </WrapperRadio>
                 </div>
               </WrapperInfo>
               <WrapperInfo>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <span style={{ fontSize: "15px" }}>Tạm tính</span>
-                  <span
-                    style={{
-                      color: "#000",
-                      fontSize: "14px",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {convertPrice(priceMemo)}{" "}
-                  </span>
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <span style={{ fontSize: "15px" }}>Giảm giá</span>
-                  <span
-                    style={{
-                      color: "#000",
-                      fontSize: "14px",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {`${priceDiscountMemo} %`}{" "}
-                  </span>
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <span style={{ fontSize: "15px" }}>Phí giao hàng</span>
-                  <span
-                    style={{
-                      color: "#000",
-                      fontSize: "14px",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {convertPrice(deliveryPriceMemo)}{" "}
-                  </span>
+                <div>
+                   <Label>Chọn phương thức thanh toán</Label>
+                  <WrapperRadio onChange={handlePayment} value={payment}>
+                    <Radio value="later_money">
+                      Thanh toán khi nhận hàng
+                    </Radio>
+                   
+                  </WrapperRadio>
+
                 </div>
               </WrapperInfo>
-              <WrapperTotal>
-                <span style={{ fontSize: "20px" }}>Tổng tiền</span>
-                <span style={{ display: "flex", flexDirection: "column" }}>
-                  <span
+            </WrapperLeft>
+            <WrapperRight>
+              <div style={{ width: "100%" }}>
+                <WrapperInfo>
+                  <div>
+                    <span style={{ fontSize: "15px" }}>
+                      Địa chỉ giao hàng:{" "}
+                    </span>
+                    <span style={{ fontWeight: "bold" }}>
+                      {" "}
+                      {`${user?.address} ${user?.city}`}{" "}
+                    </span>
+                    <span
+                      style={{
+                        color: "blue",
+                        cursor: "pointer",
+                        fontSize: "12px",
+                      }}
+                      onClick={handleChangeAddress}
+                    >
+                      {" "}
+                      Thay đổi{" "}
+                    </span>
+                  </div>
+                </WrapperInfo>
+                <WrapperInfo>
+                  <div
                     style={{
-                      color: "rgb(254, 56, 52)",
-                      fontSize: "24px",
-                      fontWeight: "bold",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
                     }}
                   >
-                    {convertPrice(totalPriceMemo)}
+                    <span style={{ fontSize: "15px" }}>Tạm tính</span>
+                    <span
+                      style={{
+                        color: "#000",
+                        fontSize: "14px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {convertPrice(priceMemo)}{" "}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <span style={{ fontSize: "15px" }}>Giảm giá</span>
+                    <span
+                      style={{
+                        color: "#000",
+                        fontSize: "14px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {`${priceDiscountMemo} %`}{" "}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <span style={{ fontSize: "15px" }}>Phí giao hàng</span>
+                    <span
+                      style={{
+                        color: "#000",
+                        fontSize: "14px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {convertPrice(deliveryPriceMemo)}{" "}
+                    </span>
+                  </div>
+                </WrapperInfo>
+                <WrapperTotal>
+                  <span style={{ fontSize: "20px" }}>Tổng tiền</span>
+                  <span style={{ display: "flex", flexDirection: "column" }}>
+                    <span
+                      style={{
+                        color: "rgb(254, 56, 52)",
+                        fontSize: "24px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {convertPrice(totalPriceMemo)}
+                    </span>
+                    <span style={{ color: "#000", fontSize: "11px" }}>
+                      (Đã bao gồm VAT nếu có)
+                    </span>
                   </span>
-                  <span style={{ color: "#000", fontSize: "11px" }}>
-                    (Đã bao gồm VAT nếu có)
-                  </span>
-                </span>
-              </WrapperTotal>
-            </div>
-            <Button
-              style={{
-                background: "rgb(255, 57, 69)",
+                </WrapperTotal>
+              </div>
+              <Button
+                style={{
+                  background: "rgb(255, 57, 69)",
 
-                color: "#fff",
-                height: "48px",
-                width: "100%",
-                border: "1px solid",
-                fontWeight: "500",
-                margin: "26px 0 10px",
-                marginLeft: "50px",
-              }}
-              onClick={() => handleAddCard()}
-            >
-              Mua hàng
-            </Button>
-          </WrapperRight>
+                  color: "#fff",
+                  height: "48px",
+                  width: "100%",
+                  border: "1px solid",
+                  fontWeight: "500",
+                  margin: "26px 0 10px",
+                  marginLeft: "50px",
+                }}
+                onClick={() => handleAddOrder()}
+              >
+                Đặt hàng
+              </Button>
+            </WrapperRight>
+          </div>
         </div>
-      </div>
-      <ModalComponent
-        title="Cập nhật thông tin giao hàng"
-        open={isOpenModalUpdateInfo}
-        onCancel={handleCancelUpdate}
-        onOk={handleUpdateInforUser}
-      >
-        
+        <ModalComponent
+          title="Cập nhật thông tin giao hàng"
+          open={isOpenModalUpdateInfo}
+          onCancel={handleCancelUpdate}
+          onOk={handleUpdateInforUser}
+        >
           <Form
             name="basic"
             labelCol={{ span: 4 }}
@@ -469,8 +398,7 @@ const OrderPage = () => {
                 style={{ width: "50%" }}
               />
             </Form.Item>
-  
-            
+
             <Form.Item
               label="Phone"
               name="phone"
@@ -486,7 +414,9 @@ const OrderPage = () => {
             <Form.Item
               label="Address"
               name="address"
-              rules={[{ required: true, message: "Please input your address!" }]}
+              rules={[
+                { required: true, message: "Please input your address!" },
+              ]}
             >
               <Input
                 value={stateUserDetails.address}
@@ -508,9 +438,9 @@ const OrderPage = () => {
               />
             </Form.Item>
           </Form>
-      
-      </ModalComponent>
+        </ModalComponent>
+      </Loading>
     </div>
   );
 };
-export default OrderPage;
+export default PaymentPage;

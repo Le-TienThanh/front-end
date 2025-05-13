@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import {Radio} from "antd";
 export const WrapperStyleHeader = styled.div`
     background: rgb(255, 255, 255);
     padding 9px 16px;
@@ -67,3 +68,26 @@ export const WrapperTotal = styled.div`
   border-bottom-left-radius: 5px;
   width: 100%
 `;
+export const Label = styled.span`
+font-size: 12px;
+color: #000;
+font-weight: bold;
+
+
+`
+
+export const WrapperRadio = styled(Radio.Group)`
+margin-top: 6px;
+background: rgb(240, 248, 255);
+border: 1px solid rgb(194, 255, 255);
+width: 500px;
+border-radius: 5px;
+height: 100px;
+padding: 16px;
+font-weight: normal;
+display: flex;
+flex-direction: column;
+gap: 10px;
+justify-content: center;
+
+`
