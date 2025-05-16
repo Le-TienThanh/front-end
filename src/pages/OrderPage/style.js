@@ -11,6 +11,19 @@ export const WrapperStyleHeader = styled.div`
         color: rgb(36, 36, 36);
     }
     `;
+export const WrapperStyleHeaderDelivery = styled.div`
+    background: rgb(255, 255, 255);
+    padding 9px 16px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    span{
+        font-size: 16px;
+        font-weight: 500;
+        color: rgb(36, 36, 36);
+    }
+        margin-bottom: 4px;
+    `;
 export const WrapperLeft = styled.div`
   width: 910px;
 `;
@@ -54,7 +67,6 @@ export const WrapperInfo = styled.div`
   border-top-right-radius: 5px;
   border-top-left-radius: 5px;
   width: 100%;
-  
 `;
 
 export const WrapperTotal = styled.div`
@@ -65,5 +77,5 @@ export const WrapperTotal = styled.div`
   background: rgb(255, 255, 255);
   border-bottom-right-radius: 5px;
   border-bottom-left-radius: 5px;
-  width: 100%
+  width: 100%;
 `;

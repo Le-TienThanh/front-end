@@ -4,10 +4,11 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   decreaseAmount,
   increaseAmount,
+  removeAllOrderProduct,
   removeOrderProduct,
   selectedOrder,
 } from "../../redux/slides/orderSlide";
-import { Button, Input, Form } from "antd";
+import { Button, Input, Form, Descriptions } from "antd";
 import {
   WrapperCountOrder,
   WrapperInfo,
@@ -16,6 +17,7 @@ import {
   WrapperListOrder,
   WrapperRight,
   WrapperStyleHeader,
+  WrapperStyleHeaderDelivery,
   WrapperTotal,
 } from "./style";
 import { Checkbox } from "antd";
@@ -31,12 +33,14 @@ import * as UserService from "../../services/UserService";
 import ModalComponent from "../../components/ModalComponent/ModalComponent";
 import { useMutationHooks } from "../../hooks/useMutationHook";
 import Loading from "../../components/LoadingComponent/Loading";
-import * as message from "../../components/Message/Message"
+import * as message from "../../components/Message/Message";
 import { updateUser } from "../../redux/slides/userSlide";
+import StepComponent from "../../components/StepComponent/StepComponent";
 const OrderPage = () => {
   const order = useSelector((state) => state.order);
   const user = useSelector((state) => state.user);
   const [listChecked, setListChecked] = useState([]);
+  const [isReadyToNavigate, setIsReadyToNavigate] = useState(false);
   const [isOpenModalUpdateInfo, setIsOpenModalUpdateInfo] = useState(false);
   const dispatch = useDispatch();
   const [form] = Form.useForm();
@@ -50,10 +54,10 @@ const OrderPage = () => {
   });
   const mutationUpdate = useMutationHooks((data) => {
     const { id, token, ...rests } = data;
-    const res = UserService.updateUser(id, { ...rests }, token);
-    return res;
+    const response = UserService.updateUser(id, { ...rests }, token);
+    return response;
   });
-  const {isLoading, data} = mutationUpdate;
+  const { isLoading, data } = mutationUpdate;
   const onChange = (e) => {
     if (listChecked.includes(e.target.value)) {
       const newListChecked = listChecked.filter(
@@ -92,39 +96,29 @@ const OrderPage = () => {
     });
   };
   const handleChangeAddress = () => {
-    setIsOpenModalUpdateInfo(true)
-  }
-
-
-
-
-
-
-
-
-
+    setIsOpenModalUpdateInfo(true);
+  };
 
   useEffect(() => {
     dispatch(selectedOrder({ listChecked }));
   }, [listChecked]);
   useEffect(() => {
-    if(isOpenModalUpdateInfo){
+    if (isOpenModalUpdateInfo) {
       setStateUserDetails({
-        
         city: user?.city,
         name: user?.name,
         address: user?.address,
-        phone: user?.phone
-      })
+        phone: user?.phone,
+      });
     }
-  }, [isOpenModalUpdateInfo])
+  }, [isOpenModalUpdateInfo]);
   useEffect(() => {
-    form.setFieldsValue(stateUserDetails)
-  }, [form, stateUserDetails])
+    form.setFieldsValue(stateUserDetails);
+  }, [form, stateUserDetails]);
 
   const priceMemo = useMemo(() => {
     const result = order?.orderItemsSelected?.reduce((total, cur) => {
-      return total + (cur.price * cur.amount);
+      return total + cur.price * cur.amount;
     }, 0);
     if (Number(result)) {
       return result;
@@ -133,7 +127,7 @@ const OrderPage = () => {
   }, [order]);
   const priceDiscountMemo = useMemo(() => {
     const result = order?.orderItems?.reduce((total, cur) => {
-      return total + (cur.discount * cur.amount);
+      return total + cur.discount * cur.amount;
     }, 0);
     if (Number(result)) {
       return result;
@@ -141,9 +135,9 @@ const OrderPage = () => {
     return 0;
   }, [order]);
   const deliveryPriceMemo = useMemo(() => {
-    if (priceMemo > 200000) {
+    if (priceMemo >= 200000 && priceMemo <= 500000) {
       return 10000;
-    } else if (priceMemo === 0) {
+    } else if (priceMemo >= 500000 || order?.orderItemsSelected?.length === 0) {
       return 0;
     } else {
       return 20000;
@@ -156,45 +150,62 @@ const OrderPage = () => {
   }, [priceMemo, priceDiscountMemo, deliveryPriceMemo]);
   const handleRemoveAllOrder = () => {
     if (listChecked?.length > 1) {
-      dispatch(removeOrderProduct({ listChecked }));
+      dispatch(removeAllOrderProduct({ listChecked }));
     }
   };
   const handleAddCard = () => {
-    if(!order?.orderItemsSelected?.length){
-      message.error("Vui lòng chọn sản phẩm")
-
-    } else if(!user?.phone || !user?.address || !user?.name || !user?.city){
+    if (!order?.orderItemsSelected?.length) {
+      message.error("Vui lòng chọn sản phẩm");
+    } else if (!user?.phone || !user?.address || !user?.name || !user?.city) {
       setIsOpenModalUpdateInfo(true);
-    } else{
+    } else {
+      dispatch(selectedOrder({ listChecked }));
       navigate("/payment");
     }
-    
   };
+
   const handleCancelUpdate = () => {
     setStateUserDetails({
       name: "",
       email: "",
       phone: "",
-      isAdmin: false
-    })
+      isAdmin: false,
+    });
     form.resetFields();
     setIsOpenModalUpdateInfo(false);
   };
   const handleUpdateInforUser = () => {
     const { name, address, city, phone } = stateUserDetails;
     if (name && address && city && phone) {
-      mutationUpdate.mutate({
-        id: user?.id,
-        token: user?.access_token,
-        ...stateUserDetails,
-      }, {
-        onSuccess: () => {
-          dispatch(updateUser({name, address, city, phone}))
-          setIsOpenModalUpdateInfo(false);
+      mutationUpdate.mutate(
+        {
+          id: user?.id,
+          token: user?.access_token,
+          ...stateUserDetails,
+        },
+        {
+          onSuccess: () => {
+            dispatch(updateUser({ name, address, city, phone }));
+            setIsOpenModalUpdateInfo(false);
+          },
         }
-      });
+      );
     }
   };
+  const itemsDelivery = [
+    {
+      title: "20.000 VND",
+      description: "Dưới 20.000 VND",
+    },
+    {
+      title: "10.000 VND",
+      description: "Từ 200.000 VND đến dưới 500.000 VND",
+    },
+    {
+      title: "0 VND",
+      description: "Trên 500.000 VND",
+    },
+  ];
 
   return (
     <div style={{ background: "#ccc", width: "100%", height: "100vh" }}>
@@ -202,6 +213,20 @@ const OrderPage = () => {
         <h3 style={{ fontSize: "20px" }}>Giỏ hàng</h3>
         <div style={{ display: "flex", justifyContent: "center" }}>
           <WrapperLeft>
+            <WrapperStyleHeaderDelivery>
+              <StepComponent
+                items={itemsDelivery}
+                current={
+                  deliveryPriceMemo === 10000
+                    ? 2
+                    : deliveryPriceMemo === 20000
+                    ? 1
+                    : order.orderItemsSelected.length === 0
+                    ? 0
+                    : 3
+                }
+              />
+            </WrapperStyleHeaderDelivery>
             <WrapperStyleHeader>
               <span style={{ display: "inline-block", width: "390px" }}>
                 <Checkbox
@@ -343,11 +368,22 @@ const OrderPage = () => {
             <div style={{ width: "100%" }}>
               <WrapperInfo>
                 <div>
-                  <span style={{ fontSize: "15px"}}>Địa chỉ giao hàng: </span>
-                  <span style={{fontWeight: "bold"}}> {`${user?.address} ${user?.city}`} </span>
-                  <span style={{color: "blue", cursor: "pointer", fontSize: "12px"}}
-                  onClick={handleChangeAddress}
-                  > Thay đổi </span>
+                  <span style={{ fontSize: "15px" }}>Địa chỉ giao hàng: </span>
+                  <span style={{ fontWeight: "bold" }}>
+                    {" "}
+                    {`${user?.address} ${user?.city}`}{" "}
+                  </span>
+                  <span
+                    style={{
+                      color: "blue",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                    }}
+                    onClick={handleChangeAddress}
+                  >
+                    {" "}
+                    Thay đổi{" "}
+                  </span>
                 </div>
               </WrapperInfo>
               <WrapperInfo>
@@ -449,68 +485,65 @@ const OrderPage = () => {
         onCancel={handleCancelUpdate}
         onOk={handleUpdateInforUser}
       >
-        
-          <Form
-            name="basic"
-            labelCol={{ span: 4 }}
-            wrapperCol={{ span: 20 }}
-            style={{ width: "50vw" }}
-            // onFinish={onUpdateUser}
-            autoComplete="on"
-            form={form}
+        <Form
+          name="basic"
+          labelCol={{ span: 4 }}
+          wrapperCol={{ span: 20 }}
+          style={{ width: "50vw" }}
+          // onFinish={onUpdateUser}
+          autoComplete="on"
+          form={form}
+        >
+          <Form.Item
+            label="Name"
+            name="name"
+            rules={[{ required: true, message: "Please input your name!" }]}
           >
-            <Form.Item
-              label="Name"
+            <Input
+              value={stateUserDetails.name}
+              onChange={handleOnchangeDetails}
               name="name"
-              rules={[{ required: true, message: "Please input your name!" }]}
-            >
-              <Input
-                value={stateUserDetails.name}
-                onChange={handleOnchangeDetails}
-                name="name"
-                style={{ width: "50%" }}
-              />
-            </Form.Item>
-  
-            
-            <Form.Item
-              label="Phone"
+              style={{ width: "50%" }}
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="Phone"
+            name="phone"
+            rules={[{ required: true, message: "Please input your phone!" }]}
+          >
+            <Input
+              value={stateUserDetails.phone}
+              onChange={handleOnchangeDetails}
               name="phone"
-              rules={[{ required: true, message: "Please input your phone!" }]}
-            >
-              <Input
-                value={stateUserDetails.phone}
-                onChange={handleOnchangeDetails}
-                name="phone"
-                style={{ width: "50%" }}
-              />
-            </Form.Item>
-            <Form.Item
-              label="Address"
+              style={{ width: "50%" }}
+            />
+          </Form.Item>
+          <Form.Item
+            label="Address"
+            name="address"
+            rules={[{ required: true, message: "Please input your address!" }]}
+          >
+            <Input
+              value={stateUserDetails.address}
+              onChange={handleOnchangeDetails}
               name="address"
-              rules={[{ required: true, message: "Please input your address!" }]}
-            >
-              <Input
-                value={stateUserDetails.address}
-                onChange={handleOnchangeDetails}
-                name="address"
-                style={{ width: "50%" }}
-              />
-            </Form.Item>
-            <Form.Item
-              label="City"
+              style={{ width: "50%" }}
+            />
+          </Form.Item>
+          <Form.Item
+            label="City"
+            name="city"
+            rules={[{ required: true, message: "Please input your city!" }]}
+          >
+            <Input
+              value={stateUserDetails.city}
+              onChange={handleOnchangeDetails}
               name="city"
-              rules={[{ required: true, message: "Please input your city!" }]}
-            >
-              <Input
-                value={stateUserDetails.city}
-                onChange={handleOnchangeDetails}
-                name="city"
-                style={{ width: "50%" }}
-              />
-            </Form.Item>
-          </Form>
-      
+              style={{ width: "50%" }}
+            />
+          </Form.Item>
+        </Form>
       </ModalComponent>
     </div>
   );

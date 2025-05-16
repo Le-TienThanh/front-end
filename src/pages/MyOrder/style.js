@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import {Radio} from "antd";
 export const WrapperStyleHeader = styled.div`
     background: rgb(255, 255, 255);
     padding 9px 16px;
@@ -12,8 +11,30 @@ export const WrapperStyleHeader = styled.div`
         color: rgb(36, 36, 36);
     }
     `;
+export const WrapperStyleHeaderDelivery = styled.div`
+    background: rgb(255, 255, 255);
+    padding 9px 16px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    span{
+        font-size: 16px;
+        font-weight: 500;
+        color: rgb(36, 36, 36);
+    }
+        margin-bottom: 4px;
+    `;
 export const WrapperLeft = styled.div`
   width: 910px;
+`;
+export const WrapperStatus = styled.div`
+  display: flex;
+  align-item: flex-start;
+  width: 100%;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgb(235, 235, 240);
+  flex-direction: column;
 `;
 export const WrapperListOrder = styled.div``;
 export const WrapperItemOrder = styled.div`
@@ -23,6 +44,12 @@ export const WrapperItemOrder = styled.div`
   padding: 9px 16px;
   background: rgb(255, 255, 255);
   margin-top: 12px;
+`;
+export const WrapperFooterItem = styled.div`
+  display: flex;
+
+  flex-direction: column;
+  gap: 10px;
 `;
 export const WrapperPriceDiscount = styled.span`
   color: #999;
@@ -54,8 +81,7 @@ export const WrapperInfo = styled.div`
   background: rgb(255, 255, 255);
   border-top-right-radius: 5px;
   border-top-left-radius: 5px;
-  width: 90%;
-  
+  width: 100%;
 `;
 
 export const WrapperTotal = styled.div`
@@ -66,43 +92,5 @@ export const WrapperTotal = styled.div`
   background: rgb(255, 255, 255);
   border-bottom-right-radius: 5px;
   border-bottom-left-radius: 5px;
-  width: 90%
+  width: 100%;
 `;
-export const Label = styled.span`
-font-size: 12px;
-color: #000;
-font-weight: bold;
-
-
-`
-
-export const WrapperRadio = styled(Radio.Group)`
-margin-top: 6px;
-background: rgb(240, 248, 255);
-border: 1px solid rgb(194, 255, 255);
-width: 500px;
-border-radius: 5px;
-height: 150px;
-padding: 16px;
-font-weight: normal;
-display: flex;
-flex-direction: column;
-gap: 10px;
-justify-content: center;
-
-`
-export const WrapperRadioPayment = styled(Radio.Group)`
-margin-top: 6px;
-background: rgb(240, 248, 255);
-border: 1px solid rgb(194, 255, 255);
-width: 500px;
-border-radius: 5px;
-height: 50px;
-padding: 16px;
-font-weight: normal;
-display: flex;
-flex-direction: column;
-gap: 10px;
-justify-content: center;
-
-`

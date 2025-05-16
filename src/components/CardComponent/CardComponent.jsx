@@ -33,7 +33,8 @@ const CardComponent = (props) => {
           src={image}
         />
       }
-      onClick={() => handleDetailsProduct(id)}
+      onClick={() => countInStock !== 0 && handleDetailsProduct(id)}
+      disabled={countInStock === 0}
     >
       <StyleNameProduct>{name}</StyleNameProduct>
       <WrapperReportText>

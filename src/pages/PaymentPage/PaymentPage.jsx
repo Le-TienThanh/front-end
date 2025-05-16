@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   decreaseAmount,
   increaseAmount,
+  removeAllOrderProduct,
   removeOrderProduct,
   selectedOrder,
 } from "../../redux/slides/orderSlide";
@@ -16,6 +17,7 @@ import {
   WrapperLeft,
   WrapperListOrder,
   WrapperRadio,
+  WrapperRadioPayment,
   WrapperRight,
   WrapperStyleHeader,
   WrapperTotal,
@@ -39,7 +41,8 @@ import * as OrderService from "../../services/OrderService";
 const PaymentPage = () => {
   const order = useSelector((state) => state.order);
   const user = useSelector((state) => state.user);
-  const [listChecked, setListChecked] = useState([]);
+  
+  
   const [delivery, setDelivery] = useState("fast");
   const [payment, setPayment] = useState("later_money");
   const [isOpenModalUpdateInfo, setIsOpenModalUpdateInfo] = useState(false);
@@ -59,30 +62,9 @@ const PaymentPage = () => {
     return res;
   });
   const mutationAddOrder = useMutationHooks((data) => {
-    if (
-      user?.access_token &&
-      order?.orderItemsSelected &&
-      user?.name &&
-      user?.address &&
-      user?.phone &&
-      user?.city &&
-      priceMemo &&
-      user?.id
-    ) {
-      mutationAddOrder.mutate({
-        token: user?.access_token,
-        orderItems: order?.orderItemsSelected,
-        fullName: user?.name,
-        address: user?.address,
-        phone: user?.phone,
-        city: user?.city,
-        paymentMethod: payment,
-        itemsPrice: priceMemo,
-        shippingPrice: deliveryPriceMemo,
-        totalPrice: totalPriceMemo,
-        user: user?.id,
-      });
-    }
+    const { token, ...rests } = data;
+    const response = OrderService.createOrder({ ...rests }, token);
+    return response;
   });
   const { isLoading, data } = mutationUpdate;
   const {
@@ -91,19 +73,30 @@ const PaymentPage = () => {
     isError,
     data: dataAdd,
   } = mutationAddOrder;
+  
   useEffect(() => {
     if (isSuccess && dataAdd?.status === "OK") {
+      const arrayOrdered = [];
+      order?.orderItemsSelected?.forEach(element => {
+        arrayOrdered.push(element.product);
+      })
+      dispatch(removeAllOrderProduct({listChecked: arrayOrdered}))
       message.success("Đặt hàng thành công");
+      navigate("/order-success", {
+        state: {
+          delivery,
+          payment,
+          orders: order?.orderItemsSelected,
+          totalPriceMemo: totalPriceMemo,
+        },
+      });
     } else if (isError) {
       message.error();
     }
   }, [isSuccess, isError]);
+  
 
-  const handleRemoveAllOrder = () => {
-    if (listChecked?.length > 1) {
-      dispatch(removeOrderProduct({ listChecked }));
-    }
-  };
+
 
   const handleOnchangeDetails = (e) => {
     setStateUserDetails({
@@ -115,9 +108,7 @@ const PaymentPage = () => {
     setIsOpenModalUpdateInfo(true);
   };
 
-  useEffect(() => {
-    dispatch(selectedOrder({ listChecked }));
-  }, [listChecked]);
+ 
   useEffect(() => {
     if (isOpenModalUpdateInfo) {
       setStateUserDetails({
@@ -132,11 +123,7 @@ const PaymentPage = () => {
     form.setFieldsValue(stateUserDetails);
   }, [form, stateUserDetails]);
 
-  // const mutationAddOrder = useMutationHooks((data) => {
-  //     const { id, token, ...rests } = data;
-  //     const res = UserService.updateUser(id, { ...rests }, token);
-  //     return res;
-  //   });
+  
 
   const priceMemo = useMemo(() => {
     const result = order?.orderItemsSelected?.reduce((total, cur) => {
@@ -172,14 +159,33 @@ const PaymentPage = () => {
   }, [priceMemo, priceDiscountMemo, deliveryPriceMemo]);
 
   const handleAddOrder = () => {
-    if (!order?.orderItemsSelected?.length) {
-      message.error("Vui lòng chọn sản phẩm");
-    } else if (!user?.phone || !user?.address || !user?.name || !user?.city) {
-      setIsOpenModalUpdateInfo(true);
-    } else {
-      navigate("/payment");
+    
+    if (
+      user?.access_token &&
+      order?.orderItemsSelected &&
+      user?.name &&
+      user?.address &&
+      user?.phone &&
+      user?.city &&
+      priceMemo &&
+      user?.id
+    ) {
+      mutationAddOrder.mutate({
+        token: user?.access_token,
+        orderItems: order?.orderItemsSelected,
+        fullName: user?.name,
+        address: user?.address,
+        phone: user?.phone,
+        city: user?.city,
+        paymentMethod: payment,
+        itemsPrice: priceMemo,
+        shippingPrice: deliveryPriceMemo,
+        totalPrice: totalPriceMemo,
+        user: user?.id,
+      });
     }
   };
+  
   const handleCancelUpdate = () => {
     setStateUserDetails({
       name: "",
@@ -215,9 +221,10 @@ const PaymentPage = () => {
     setPayment(e.target.value);
   };
 
+
   return (
     <div style={{ background: "#ccc", width: "100%", height: "100vh" }}>
-      <Loading isLoading={isLoadingAddOrder}>
+      
         <div style={{ height: "100%", width: "1270px", margin: "0 auto" }}>
           <h3 style={{ fontSize: "20px" }}>Chọn phương thức thanh toán</h3>
           <div style={{ display: "flex", justifyContent: "center" }}>
@@ -227,14 +234,50 @@ const PaymentPage = () => {
                   <Label>Chọn phương thức giao hàng</Label>
                   <WrapperRadio onChange={handleDelivery} value={delivery}>
                     <Radio value="fast">
-                      <span style={{ color: "#ea8500", fontWeight: "bold" }}>
+                      <span
+                        style={{
+                          color: "#ea8500",
+                          fontWeight: "bold",
+                          marginRight: "10px",
+                        }}
+                      >
                         FAST
                       </span>
                       Giao hàng tiết kiệm
                     </Radio>
                     <Radio value="gojek">
-                      <span style={{ color: "#ea8500", fontWeight: "bold" }}>
+                      <span
+                        style={{
+                          color: "#ea8500",
+                          fontWeight: "bold",
+                          marginRight: "10px",
+                        }}
+                      >
                         GO_JEK
+                      </span>
+                      Giao hàng tiết kiệm
+                    </Radio>
+                    <Radio value="bee">
+                      <span
+                        style={{
+                          color: "#ea8500",
+                          fontWeight: "bold",
+                          marginRight: "10px",
+                        }}
+                      >
+                        BEE
+                      </span>
+                      Giao hàng tiết kiệm
+                    </Radio>
+                    <Radio value="grab">
+                      <span
+                        style={{
+                          color: "#ea8500",
+                          fontWeight: "bold",
+                          marginRight: "10px",
+                        }}
+                      >
+                        Grab
                       </span>
                       Giao hàng tiết kiệm
                     </Radio>
@@ -243,14 +286,10 @@ const PaymentPage = () => {
               </WrapperInfo>
               <WrapperInfo>
                 <div>
-                   <Label>Chọn phương thức thanh toán</Label>
-                  <WrapperRadio onChange={handlePayment} value={payment}>
-                    <Radio value="later_money">
-                      Thanh toán khi nhận hàng
-                    </Radio>
-                   
-                  </WrapperRadio>
-
+                  <Label>Chọn phương thức thanh toán</Label>
+                  <WrapperRadioPayment onChange={handlePayment} value={payment}>
+                    <Radio value="later_money">Thanh toán khi nhận hàng</Radio>
+                  </WrapperRadioPayment>
                 </div>
               </WrapperInfo>
             </WrapperLeft>
@@ -258,9 +297,7 @@ const PaymentPage = () => {
               <div style={{ width: "100%" }}>
                 <WrapperInfo>
                   <div>
-                    <span style={{ fontSize: "15px" }}>
-                      Địa chỉ giao hàng:{" "}
-                    </span>
+                    <span style={{ fontSize: "15px" }}>Địa chỉ giao hàng: </span>
                     <span style={{ fontWeight: "bold" }}>
                       {" "}
                       {`${user?.address} ${user?.city}`}{" "}
@@ -355,14 +392,14 @@ const PaymentPage = () => {
               <Button
                 style={{
                   background: "rgb(255, 57, 69)",
-
+  
                   color: "#fff",
                   height: "48px",
                   width: "100%",
                   border: "1px solid",
                   fontWeight: "500",
                   margin: "26px 0 10px",
-                  marginLeft: "50px",
+                  marginLeft: "10px",
                 }}
                 onClick={() => handleAddOrder()}
               >
@@ -398,7 +435,7 @@ const PaymentPage = () => {
                 style={{ width: "50%" }}
               />
             </Form.Item>
-
+  
             <Form.Item
               label="Phone"
               name="phone"
@@ -414,9 +451,7 @@ const PaymentPage = () => {
             <Form.Item
               label="Address"
               name="address"
-              rules={[
-                { required: true, message: "Please input your address!" },
-              ]}
+              rules={[{ required: true, message: "Please input your address!" }]}
             >
               <Input
                 value={stateUserDetails.address}
@@ -439,7 +474,7 @@ const PaymentPage = () => {
             </Form.Item>
           </Form>
         </ModalComponent>
-      </Loading>
+     
     </div>
   );
 };
