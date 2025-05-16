@@ -41,8 +41,6 @@ import * as OrderService from "../../services/OrderService";
 const PaymentPage = () => {
   const order = useSelector((state) => state.order);
   const user = useSelector((state) => state.user);
-  
-  
   const [delivery, setDelivery] = useState("fast");
   const [payment, setPayment] = useState("later_money");
   const [isOpenModalUpdateInfo, setIsOpenModalUpdateInfo] = useState(false);
@@ -129,14 +127,12 @@ const PaymentPage = () => {
     const result = order?.orderItemsSelected?.reduce((total, cur) => {
       return total + cur.price * cur.amount;
     }, 0);
-    if (Number(result)) {
-      return result;
-    }
-    return 0;
+    return result;
   }, [order]);
   const priceDiscountMemo = useMemo(() => {
     const result = order?.orderItems?.reduce((total, cur) => {
-      return total + cur.discount * cur.amount;
+      const totalDiscount = cur.discount ? cur.discount : 0
+      return total + (priceMemo * (totalDiscount * cur.amount) / 100)
     }, 0);
     if (Number(result)) {
       return result;
@@ -157,6 +153,16 @@ const PaymentPage = () => {
       Number(priceMemo) - Number(priceDiscountMemo) + Number(deliveryPriceMemo)
     );
   }, [priceMemo, priceDiscountMemo, deliveryPriceMemo]);
+  console.log({
+  token: user?.access_token,
+  orderItemsSelected: order?.orderItemsSelected,
+  name: user?.name,
+  address: user?.address,
+  phone: user?.phone,
+  city: user?.city,
+  priceMemo,
+  userId: user?.id
+});
 
   const handleAddOrder = () => {
     
@@ -203,7 +209,7 @@ const PaymentPage = () => {
         {
           id: user?.id,
           token: user?.access_token,
-          stateUserDetails,
+          ...stateUserDetails,
         },
         {
           onSuccess: () => {
@@ -349,7 +355,7 @@ const PaymentPage = () => {
                         fontWeight: "bold",
                       }}
                     >
-                      {`${priceDiscountMemo} %`}{" "}
+                      {convertPrice(priceDiscountMemo)}{" "}
                     </span>
                   </div>
                   <div

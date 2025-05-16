@@ -72,19 +72,29 @@ const MyOrderPage = () => {
   }
   const mutation = useMutationHooks(
     (data) => {
-      const {id, token} = data;
-      const res = OrderService.cancelOrder(id, token);
+      const {id, token, orderItems} = data;
+      const res = OrderService.cancelOrder(id, token, orderItems);
       return res;
     }
   )
-  const handleCancelOrder = (id) => {
-    mutation.mutate({id, token: state?.token}, {
-      onSettled: () => {
+  const handleCancelOrder = (order) => {
+    mutation.mutate({id: order._id, token: state?.token, orderItems: order?.orderItems}, {
+      onSuccess: () => {
         queryOrder.refetch();
       }
     })
     
   }
+  const {isLoading: isLoadingCancel, isSuccess: isSuccessCancel, isError: isErrorCancel, data: dataCancel} = mutation;
+  useEffect(() => {
+    if(isSuccessCancel && dataCancel?.status === "OK"){
+      message.success();
+    } else if( isErrorCancel){
+      message.error();
+
+    }
+ 
+  }, [isErrorCancel, isSuccessCancel])
 
   return (
     <WrapperContainer>
@@ -122,7 +132,7 @@ const MyOrderPage = () => {
                   </div>
                   <div style={{display: "flex", gap: "10px"}}>
                     <Button
-                    onClick={() => handleCancelOrder(order?._id)}
+                    onClick={() => handleCancelOrder(order)}
                     >
                       Hủy đơn hàng
                     </Button>

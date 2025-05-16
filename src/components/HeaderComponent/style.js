@@ -1,4 +1,5 @@
 import { Row } from "antd";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 // box header
 export const WrapperHeader = styled(Row)`
@@ -9,7 +10,7 @@ export const WrapperHeader = styled(Row)`
   
 `;
 // left header: text
-export const TextWrapperHeader = styled.span`
+export const TextWrapperHeader = styled(Link)`
   font-size: 30px;
   color: white;
   font-weight: bold;
