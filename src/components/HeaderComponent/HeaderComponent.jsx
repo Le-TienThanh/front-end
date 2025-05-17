@@ -102,7 +102,7 @@ const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
         }}
       >
         <Col span={5}>
-          <TextWrapperHeader style={{ cursor: "pointer" }} onClick={goHomePage} to={"/"} >
+          <TextWrapperHeader style={{ cursor: "pointer" }} onClick={goHomePage}  >
             MY SHOP
           </TextWrapperHeader>
         </Col>
