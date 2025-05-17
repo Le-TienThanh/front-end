@@ -8,7 +8,7 @@ const ButtonInputSearch = (props) => {
   const {
     size,
     placeholder,
-    textButton,
+    textbutton,
     bordered,
     backgroundColorInput = "#fff",
     backgroundColorButton = "#2c92e4",
@@ -31,7 +31,7 @@ const ButtonInputSearch = (props) => {
           ...(bordered === false && { border: "none" }) // tránh truyền prop bordered không hợp lệ
         }}
       >
-        <span style={{ color: colorButton }}>{textButton}</span>
+        <span style={{ color: colorButton }}>{textbutton}</span>
       </Button>
     </div>
   );

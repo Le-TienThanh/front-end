@@ -12,7 +12,7 @@ import * as UserService from "./services/UserService";
 
 import { jwtDecode } from "jwt-decode";
 import { useDispatch, useSelector } from "react-redux";
-import { updateUser } from "./redux/slides/userSlide";
+import { resetUser, updateUser } from "./redux/slides/userSlide";
 import Loading from "./components/LoadingComponent/Loading";
 export function App() {
   // useEffect(() => {
@@ -27,7 +27,7 @@ export function App() {
   // const query = useQuery({ queryKey: ['todos'], queryFn: fetchApi })
   // console.log("query", query);
   const dispatch = useDispatch();
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
   const user = useSelector((state) => state.user);
   useEffect(() => {
     setIsLoading(true);
@@ -37,7 +37,6 @@ export function App() {
       handleGetDetailsUser(decoded?.id, storageData);
     }
     setIsLoading(false);
-
   }, []);
   const handleDecoded = () => {
     let storageData = localStorage.getItem("access_token");
@@ -48,28 +47,101 @@ export function App() {
     }
     return { decoded, storageData };
   };
+  // UserService.axiosJWT.interceptors.request.use(
+  //   async (config) => {
+  //     try {
+  //       const currentTime = new Date();
+  //     const { decoded } = handleDecoded();
+  //     let storageRefreshToken = localStorage.getItem("refresh_token");
+  //     const refreshToken = JSON.parse(storageRefreshToken);
+  //     const decodedRefreshToken = jwtDecode(refreshToken);
+  //     if (decoded?.exp < currentTime.getTime() / 1000) {
+  //       if (decodedRefreshToken?.exp > currentTime.getTime() / 1000) {
+  //         const data = await UserService.refreshToken(refreshToken);
+  //         config.headers["token"] = `Bearer ${data?.access_token}`;
+  //       } else {
+  //         dispatch(resetUser())
+  //       }
+  //     }
+
+        
+  //     } catch (error) {
+  //       console.log(error);
+
+        
+  //     }
+      
+  //     return config;
+  //   },
+  //   (error) => {
+  //     return Promise.reject(error);
+  //   }
+  // );
   UserService.axiosJWT.interceptors.request.use(
-    async (config) => {
+  async (config) => {
+    try {
       const currentTime = new Date();
       const { decoded } = handleDecoded();
+
+      const storageRefreshToken = localStorage.getItem("refresh_token");
+
+      if (!storageRefreshToken || !isJsonString(storageRefreshToken)) {
+        dispatch(resetUser());
+        return config;
+      }
+
+      const refreshToken = JSON.parse(storageRefreshToken);
+
+      // Kiểm tra nếu không phải string thì không decode
+      if (typeof refreshToken !== "string") {
+        dispatch(resetUser());
+        return config;
+      }
+
+      let decodedRefreshToken = null;
+
+      try {
+        decodedRefreshToken = jwtDecode(refreshToken);
+      } catch (error) {
+        console.error("Invalid refresh token:", error);
+        dispatch(resetUser());
+        return config;
+      }
+
       if (decoded?.exp < currentTime.getTime() / 1000) {
-        const data = await UserService.refeshToken();
-        config.headers["token"] = `Bearer ${data?.access_token}`;
+        if (decodedRefreshToken?.exp > currentTime.getTime() / 1000) {
+          const data = await UserService.refreshToken(refreshToken);
+          config.headers["token"] = `Bearer ${data?.access_token}`;
+        } else {
+          dispatch(resetUser());
+        }
       }
 
       return config;
-    },
-    (error) => {
-      return Promise.reject(error);
+    } catch (err) {
+      console.error("Interceptor error:", err);
+      return Promise.reject(err);
     }
-  );
+  },
+  (error) => Promise.reject(error)
+);
+
   const handleGetDetailsUser = async (id, token) => {
+    let storageRefreshToken = localStorage.getItem("refresh_token");
+    const refreshToken = JSON.parse(storageRefreshToken);
+
     const res = await UserService.getDetailsUser(id, token);
-    dispatch(updateUser({ ...res?.data, access_token: token }));
+    dispatch(
+      updateUser({
+        ...res?.data,
+        access_token: token,
+        refreshToken: refreshToken,
+      })
+    );
   };
 
   return (
-    <div>
+    <div style={{ height: "100vh", width: "100%" }}>
       <Loading isLoading={isLoading}>
         <Router>
           <Routes>

@@ -110,7 +110,7 @@ const Homepage = () => {
             }}
           >
             <WrapperButtonMore
-              styleButton={{
+              stylebutton={{
                 color: `${
                   products?.total === products?.data?.length
                     ? "rgb(11, 116, 229)"
@@ -121,7 +121,7 @@ const Homepage = () => {
                 products?.total === products?.data?.length ||
                 products?.totalPage === 1
               }
-              styleTextButton={{
+              styletextbutton={{
                 color: `${
                   products?.total === products?.data?.length && "#fff"
                 }`,

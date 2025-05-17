@@ -1,3 +1,5 @@
+import { orderContant } from "./contant";
+
 export const isJsonString = (data) => {
   try {
     JSON.parse(data);
@@ -13,19 +15,19 @@ export const getBase64 = (file) =>
     reader.onload = () => resolve(reader.result);
     reader.onerror = (error) => reject(error);
   });
-export function getItem(label, key, icon, children, type){
-    return {
-        key,
-        icon,
-        children,
-        label, 
-        type
-    };
+export function getItem(label, key, icon, children, type) {
+  return {
+    key,
+    icon,
+    children,
+    label,
+    type,
+  };
 }
 export const renderOptions = (arr) => {
   let results = [];
 
-  if(arr){
+  if (arr) {
     results = arr?.map((opt) => {
       return {
         label: opt,
@@ -38,15 +40,57 @@ export const renderOptions = (arr) => {
     value: "add_type",
   });
   return results;
-}
+};
 
 export const convertPrice = (price) => {
   try {
     const result = price?.toLocaleString().replaceAll(",", ".");
     return `${result} VND`;
-    
   } catch (error) {
     return null;
-    
   }
-}
+};
+export const convertDataChart = (data, type) => {
+  const object = {};
+  // fix loi forEach
+  Array.isArray(data) &&
+    data.forEach((opt) => {
+      if (!object[opt[type]]) {
+        object[opt[type]] = 1;
+      } else {
+        object[opt[type]] += 1;
+      }
+    });
+  const results =
+    Array.isArray(Object.keys(object)) &&
+    Object.keys(object).map((item) => {
+      return {
+        name: orderContant.payment[object[item]],
+        value: object[item],
+      };
+    });
+  return results;
+};
+
+// export const initFacebookSDK = () => {
+//   if (window.FB) {
+//     window.FB.XFBML.parse();
+//   }
+//   let locale = "vi_VN";
+//   window.fhAsyncInit = (function () {
+//     window.FB.init({
+//       appId: process.env.REACT_APP_FB_ID,
+//       cookie: true,
+//       xfbml: true,
+//       version: "v8.6",
+//     });
+//   })(function (d, s, id) {
+//     var js,
+//       fjs = d.getElementByTagName(s)[0];
+//     if (d.getElementById(id)) return;
+//     js = d.createElement(s);
+//     js.id = id;
+//     js.src = `//connect.Facebook.net/${locale}/sdk.js`;
+//     fjs.parentNode.insertBefore(js, fjs);
+//   })(document, "scrip", "facebook-jssdk");
+// };

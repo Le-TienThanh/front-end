@@ -59,8 +59,8 @@ const MyOrderPage = () => {
   });
   const { isLoading, data } = queryOrder;
 
-  const renderProduct = () => {
-    // viet code vao
+  const renderProduct = (data) => {
+   
   };
   const handleDetailsOrder = (id) => {
     navigate(`/details-order/${id}`, {

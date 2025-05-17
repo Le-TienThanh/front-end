@@ -102,7 +102,7 @@ const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
         }}
       >
         <Col span={5}>
-          <TextWrapperHeader style={{ cursor: "pointer" }} onClick={goHomePage} to={"/"}>
+          <TextWrapperHeader style={{ cursor: "pointer" }} onClick={goHomePage} to={"/"} >
             MY SHOP
           </TextWrapperHeader>
         </Col>
@@ -112,7 +112,7 @@ const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
               bordered={false}
               placeholder="Tìm kiếm"
               size="large"
-              textButton="Tìm kiếm"
+              textbutton="Tìm kiếm"
               onChange={onSearch}
             />
           </Col>
