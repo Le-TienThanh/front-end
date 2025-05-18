@@ -208,7 +208,7 @@ const ProductDetailsComponent = ({ idProduct }) => {
               onChange={onChange} 
               value={numProduct} 
               min={1}
-              max={productDetails.countInStock}
+              max={productDetails?.countInStock}
               
               />
 
@@ -235,7 +235,9 @@ const ProductDetailsComponent = ({ idProduct }) => {
                 >
                   Chọn mua
                 </Button>
-                {errorLimitOrder && <div style={{color: "red"}}>Sản phẩm hết hàng</div>}
+                {errorLimitOrder && (
+                <div style={{ color: "red" }}>Sản phẩm hết hàng</div>
+              )}
               </div>
       
             <Button
