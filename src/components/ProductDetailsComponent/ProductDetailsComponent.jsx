@@ -57,7 +57,7 @@ const ProductDetailsComponent = ({ idProduct }) => {
       navigate("/sign-in", { state: location.pathname });
     } else {
       const orderRedux = order?.orderItems?.find((item) => item.product === productDetails?._id)
-      if((orderRedux?.amount + numProduct) <= orderRedux?.countInStock || !orderRedux){
+      if((orderRedux?.amount + numProduct) <= orderRedux?.countInStock ||  (!orderRedux && productDetails?.countInStock > 0)){
         dispatch(addOrderProduct({
           orderItem: {
             name: productDetails?.name,
@@ -70,7 +70,7 @@ const ProductDetailsComponent = ({ idProduct }) => {
             
           }
         }))
-      } else{
+      } else  {
         setErrorLimitOrder(true);
       }
     }
@@ -85,10 +85,10 @@ const ProductDetailsComponent = ({ idProduct }) => {
   }, [order.isSuccessOrder])
   useEffect(() => {
     const orderRedux = order?.orderItems?.find((item) => item.product === productDetails?._id);
-    if((orderRedux?.amount + numProduct) <= orderRedux?.countInStock || !orderRedux){
+    if((orderRedux?.amount + numProduct) <= orderRedux?.countInStock ||  (!orderRedux && productDetails?.countInStock > 0)){
       setErrorLimitOrder(false);
 
-    } else{
+    } else if(productDetails?.countInStock === 0) {
       setErrorLimitOrder(true);
     }
     

@@ -1,68 +1,71 @@
 import { Menu } from "antd";
 import React, { useState } from "react";
-import {MailOutlined, AppstoreOutlined, UserOutlined} from "@ant-design/icons"
+import {
+  MailOutlined,
+  AppstoreOutlined,
+  UserOutlined,
+  ShoppingCartOutlined,
+} from "@ant-design/icons";
 import { getItem } from "../../utils";
 import HeaderComponent from "../../components/HeaderComponent/HeaderComponent";
 import AdminUser from "../../components/AdminUser/AdminUser";
 import AdminProduct from "../../components/AdminProduct/AdminProduct";
+import OrderAdmin from "../../components/OrderAdmin/OrderAdmin";
 const AdminPage = () => {
-    const items = [
-        {
-          key: 'user',
-          icon: <UserOutlined />,
-          label: 'Người dùng',
-          
-        },
-        {
-          key: 'product',
-          icon: <AppstoreOutlined />,
-          label: 'Sản phẩm',
-          
-        },
-       
-      ];
-  
-  const [keySelected, setKeySelected] = useState("")
+  const items = [
+    {
+      key: "user",
+      icon: <UserOutlined />,
+      label: "Người dùng",
+    },
+    {
+      key: "product",
+      icon: <AppstoreOutlined />,
+      label: "Sản phẩm",
+    },
+    {
+      key: "order",
+      icon: <ShoppingCartOutlined />,
+      label: "Đơn hàng",
+    },
+  ];
+
+  const [keySelected, setKeySelected] = useState("");
   const renderPage = (key) => {
-    switch(key){
+    switch (key) {
       case "user":
-        return (
-          <AdminUser/>
-        )
+        return <AdminUser />;
       case "product":
-        return (
-          <AdminProduct/>
-        )
+        return <AdminProduct />;
+      case "order":
+        return <OrderAdmin />;
       default:
-        return <></>
-
+        return <></>;
     }
-  }
-  
-  const handleOnClick = ({key}) => {
-    setKeySelected(key);
+  };
 
-  }
+  const handleOnClick = ({ key }) => {
+    setKeySelected(key);
+  };
   console.log("keySelected", keySelected);
   return (
     <>
-        <HeaderComponent isHiddenSearch isHiddenCart/>
-        <div style={{display: "flex"}}>
-            <Menu
-              mode="inline"
-              
-              style={{ width: "256px",
-                boxShadow: "1px 1px 2px #ccc",
-                height: "100vh"
-               }}
-              items={items}
-              onClick={handleOnClick}
-            />
-            <div style={{flex: "1", padding: "15px"}}>
-                {renderPage(keySelected)}
-    
-            </div>
+      <HeaderComponent isHiddenSearch isHiddenCart />
+      <div style={{ display: "flex", overflowX: "hidden" }}>
+        <Menu
+          mode="inline"
+          style={{
+            width: "256px",
+            boxShadow: "1px 1px 2px #ccc",
+            height: "100vh",
+          }}
+          items={items}
+          onClick={handleOnClick}
+        />
+        <div style={{ flex: "1", padding: "15px 0 15px 15px" }}>
+          {renderPage(keySelected)}
         </div>
+      </div>
     </>
   );
 };
