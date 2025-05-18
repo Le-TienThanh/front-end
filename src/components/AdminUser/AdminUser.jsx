@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { WrapperHeader, WrapperUploadFile } from "./style";
 import Tablecomponent from "../TableComponent/TableComponent";
-import { Button, Form, Input, Space } from "antd";
+import { Button, Form, Input, Select, Space } from "antd";
 import {
   DeleteOutlined,
   EditOutlined,
@@ -33,7 +33,6 @@ const AdminUser = () => {
   const [filteredInfo, setFilteredInfo] = useState({});
   const [sortedInfo, setSortedInfo] = useState({});
 
-  
   const [stateUserDetails, setStateUserDetails] = useState({
     name: "",
     email: "",
@@ -42,8 +41,38 @@ const AdminUser = () => {
     avatar: "",
     address: "",
   });
+  const initial = () => ({
+    name: "",
+    price: "",
+    description: "",
+    rating: "",
+    image: "",
+    type: "",
+    countInStock: "",
+    newType: "",
+    discount: "",
+  });
+  const handleOnchange = (e) => {
+    setStateProduct({
+      ...stateProduct,
+      [e.target.name]: e.target.value,
+    });
+  };
+  const handleDeleteProduct = () => {
+    mutationDeleted.mutate(
+      { id: rowSelected, token: user?.access_token },
+      {
+        onSettled: () => {
+          queryUser.refetch();
+        },
+      }
+    );
+  };
 
   const [form] = Form.useForm();
+
+  const [stateProduct, setStateProduct] = useState(initial());
+  const [stateProductDetails, setStateProductDetails] = useState(initial());
 
   const mutationUpdate = useMutationHooks((data) => {
     const { id, token, ...rests } = data;
@@ -60,7 +89,6 @@ const AdminUser = () => {
     const res = UserService.deleteManyUser(ids, token);
     return res;
   });
-
 
   const {
     data: dataUpdated,
@@ -149,11 +177,9 @@ const AdminUser = () => {
     );
   };
 
-  
   const handleDetailsUser = () => {
-    if(rowSelected){
+    if (rowSelected) {
       fetchGetDetailsUser();
-      
     }
     setIsOpenDrawer(true);
   };
@@ -170,7 +196,7 @@ const AdminUser = () => {
     }
     setStateUserDetails({
       ...stateUserDetails,
-    avatar: file.preview,
+      avatar: file.preview,
     });
   };
   const handleCloseDrawer = () => {
@@ -212,7 +238,7 @@ const AdminUser = () => {
       }
     );
   };
-  
+
   const handleDeleteManyUsers = (ids) => {
     mutationDeletedMany.mutate(
       { ids: ids, token: user?.access_token },
@@ -222,6 +248,16 @@ const AdminUser = () => {
         },
       }
     );
+  };
+  const handleOnchangeImage = async ({ fileList }) => {
+    const file = fileList[0];
+    if (!file.url && !file.preview) {
+      file.preview = await getBase64(file.originFileObj);
+    }
+    setStateProduct({
+      ...stateProduct,
+      image: file.preview,
+    });
   };
 
   const getAllUsers = async () => {
@@ -251,6 +287,7 @@ const AdminUser = () => {
       </div>
     );
   };
+  
 
   const getColumnSearchProps = (dataIndex) => ({
     filterDropdown: ({
@@ -377,9 +414,9 @@ const AdminUser = () => {
 
       <div>
         <TableComponent
-        handleDeleteMany={handleDeleteManyUsers}
-          columns={columns}
           isLoading={isLoadingUsers}
+          columns={columns}
+          
           data={dataTable}
           onRow={(record, rowIndex) => {
             return {
@@ -390,14 +427,14 @@ const AdminUser = () => {
           }}
         />
       </div>
-
+      
       <DrawerComponent
-        title="Chi tiết người dùng"
+        title="Thông tin người dùng"
         isOpen={isOpenDrawer}
         onClose={() => setIsOpenDrawer(false)}
         height="100vh"
       >
-        <Loading isLoading={isLoadingUpdate}>
+        <Loading isLoading={isLoadingUpdate || isLoadingUpdated}>
           <Form
             name="basic"
             labelCol={{ span: 4 }}
@@ -418,22 +455,26 @@ const AdminUser = () => {
                 name="name"
               />
             </Form.Item>
-
             <Form.Item
               label="Email"
               name="email"
               rules={[{ required: true, message: "Please input your email!" }]}
             >
               <Input
-                value={stateUserDetails.email}
+                value={stateUserDetails.name}
                 onChange={handleOnchangeDetails}
                 name="email"
               />
             </Form.Item>
+
+
+            
             <Form.Item
               label="Phone"
               name="phone"
-              rules={[{ required: true, message: "Please input your phone!" }]}
+              rules={[
+                { required: true, message: "Please input your phone!" },
+              ]}
             >
               <Input
                 value={stateUserDetails.phone}
@@ -441,18 +482,10 @@ const AdminUser = () => {
                 name="phone"
               />
             </Form.Item>
-            <Form.Item
-              label="Address"
-              name="address"
-              rules={[{ required: true, message: "Please input your address!" }]}
-            >
-              <Input
-                value={stateUserDetails.address}
-                onChange={handleOnchangeDetails}
-                name="address"
-              />
-            </Form.Item>
-
+            
+            
+            
+            
             <Form.Item
               label="Image"
               name="image"
@@ -463,9 +496,9 @@ const AdminUser = () => {
                 maxCount={1}
               >
                 <Button icon={<UploadOutlined />}>Select File</Button>
-                {stateUserDetails?.avatar && (
+                {stateUserDetails?.image && (
                   <img
-                    src={stateUserDetails?.avatar}
+                    src={stateUserDetails?.image}
                     style={{
                       height: "60px",
                       width: "60px",
@@ -488,7 +521,6 @@ const AdminUser = () => {
         </Loading>
       </DrawerComponent>
       <ModalComponent
-        forceRender
         title="Xóa tài khoản"
         open={isModalOpenDelete}
         onCancel={handleCancelDelete}

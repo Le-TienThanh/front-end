@@ -49,8 +49,7 @@ const AdminProduct = () => {
     countInStock: "",
     newType: "",
     discount: "",
-
-  })
+  });
 
   const [stateProduct, setStateProduct] = useState(initial());
 
@@ -58,8 +57,16 @@ const AdminProduct = () => {
 
   const [form] = Form.useForm();
   const mutation = useMutationHooks((data) => {
-    const { name, price, description, rating, image, type, countInStock, discount } =
-      data;
+    const {
+      name,
+      price,
+      description,
+      rating,
+      image,
+      type,
+      countInStock,
+      discount,
+    } = data;
     const res = ProductService.createProduct({
       name,
       price,
@@ -141,10 +148,9 @@ const AdminProduct = () => {
     }
   }, [isSuccessDeleted]);
   useEffect(() => {
-    if(!isModalOpen){
-
+    if (!isModalOpen) {
       form.setFieldsValue(stateProductDetails);
-    } else{
+    } else {
       form.setFieldsValue(initial());
     }
   }, [form, stateProductDetails, isModalOpen]);
@@ -285,7 +291,7 @@ const AdminProduct = () => {
   };
 
   const fetchAllTypeProduct = async () => {
-    const response = await ProductService.getAllTypeProduct("", 100);
+    const response = await ProductService.getAllTypeProduct();
     return response;
   };
 
@@ -614,7 +620,7 @@ const AdminProduct = () => {
                 name="rating"
               />
             </Form.Item>
-             <Form.Item
+            <Form.Item
               label="Discount"
               name="discount"
               rules={[
@@ -622,11 +628,12 @@ const AdminProduct = () => {
               ]}
             >
               <Input
-                value={stateProductDetails.discount}
-                onChange={handleOnchangeDetails}
+                value={stateProduct.discount}
+                onChange={handleOnchange}
                 name="discount"
               />
             </Form.Item>
+            
             <Form.Item
               label="Description"
               name="description"
